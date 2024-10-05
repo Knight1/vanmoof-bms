@@ -41,6 +41,10 @@ func main() {
 	var bmsUndervoltageCellShutdown uint16 = 0
 	var bmsOvervoltageCellProtection1 uint16 = 0
 
+	// Define holding registers
+	cellVoltageHighest := uint16(0)
+	cellVoltageLowest := uint16(0)
+
 	fmt.Println("Starting VanMoof / DynaPack BMS Toolkit")
 	fmt.Println("Go version:", runtime.Version(), "Version:", GoVersion, "BuildTime:", BuildTime, "CommitHash:", CommitHash, "Git:", GitTag, "GOOS:", GOOS, "GOARCH:", GOARCH)
 
@@ -88,6 +92,8 @@ func main() {
 		// VanMoof / DynaPack BMS uses slave-id 170
 		client.SetUnitId(170)
 
+		defer client.Close()
+
 		regs, err = client.ReadRegisters(0x0, 95, modbus.HOLDING_REGISTER)
 		if err != nil {
 			continue
@@ -101,9 +107,13 @@ func main() {
 		fmt.Println("Verify that RX/TX is connected correctly via JTAG BMS Version Output!")
 		fmt.Println("Also make sure TEST is connected to GND. Otherwise the BMS will sleep and not respond!")
 		fmt.Println("Thanks for keeping the World a better place!")
+
+		// Try to close the Connection
 		client.Close()
 		os.Exit(1)
 	}
+
+	client.Close()
 
 	// Debug Output
 
@@ -114,13 +124,145 @@ func main() {
 	}
 
 	fmt.Println("-- END DEBUG --")
-	fmt.Println("-- BEGIN TRIGGER VALUES --")
 
-	// Checking Cell Voltages
+	fmt.Println("-- BEGIN BMS PASSIVE STATUS --")
+
+	for register, reg := range regs {
+		if register == 2 {
+			// TODO: Check what this is, should be a hex output
+			fmt.Println("BMS Fault Status:", reg)
+		} else if register == 3 {
+			batteryTemperature := (reg - 2731) / 10
+			fmt.Println("Battery Temperature:", batteryTemperature, "°C")
+		} else if register == 4 {
+			batteryVoltage := reg
+			fmt.Println("Battery Voltage:", batteryVoltage, "mV")
+		} else if register == 5 {
+			fmt.Println("Real State of Charge:", reg, "%")
+		} else if register == 6 {
+			fmt.Println("Current:", (reg * 10), "mA")
+		} else if register == 7 {
+			// TODO: should be a hex output
+			fmt.Println("Charging Status:", reg)
+		} else if register == 8 {
+			fmt.Println("Charging on/off:", reg)
+		} else if register == 9 {
+			fmt.Println("Test Mode:", reg)
+			// TODO: Compare this. Hardware and Software Version are broken
+		} else if register == 10 {
+			fmt.Println("Hardware Version:", reg)
+		} else if register == 11 {
+			fmt.Println("Software Version:", reg)
+		} else if register == 15 {
+			fmt.Println("Normal Capacity:", reg, "mAh")
+		} else if register == 19 {
+			fmt.Println("Cycle Count:", reg)
+		} else if register == 27 {
+			fmt.Println("Cell 1 Voltage:", reg, "mV")
+		} else if register == 28 {
+			fmt.Println("Cell 2 Voltage:", reg, "mV")
+		} else if register == 29 {
+			fmt.Println("Cell 3 Voltage:", reg, "mV")
+		} else if register == 30 {
+			fmt.Println("Cell 4 Voltage:", reg, "mV")
+		} else if register == 31 {
+			fmt.Println("Cell 5 Voltage:", reg, "mV")
+		} else if register == 32 {
+			fmt.Println("Cell 6 Voltage:", reg, "mV")
+		} else if register == 33 {
+			fmt.Println("Cell 7 Voltage:", reg, "mV")
+		} else if register == 34 {
+			fmt.Println("Cell 8 Voltage:", reg, "mV")
+		} else if register == 35 {
+			fmt.Println("Cell 9 Voltage:", reg, "mV")
+		} else if register == 36 {
+			fmt.Println("Cell 10 Voltage:", reg, "mV")
+		} else if register == 37 {
+			fmt.Println("Temperature Sensor 1:", (reg-2731)/10, "°C")
+		} else if register == 38 {
+			fmt.Println("Temperature Sensor 2:", (reg-2731)/10, "°C")
+		} else if register == 39 {
+			fmt.Println("Discharge MOSFET Temperature:", (reg-2731)/10, "°C")
+		} else if register == 40 {
+			fmt.Println("Warning Status:", reg)
+		} else if register == 41 {
+			cellVoltageHighest = reg
+			fmt.Println("Maximum Battery Voltage:", cellVoltageHighest, "mV")
+		} else if register == 42 {
+			cellVoltageLowest = reg
+			fmt.Println("Minimum Battery Voltage:", cellVoltageLowest, "mV")
+			if math.Abs(float64(cellVoltageHighest-cellVoltageLowest)) > 20 {
+				fmt.Println("WARNING: Voltage Imbalance in Cells!")
+			}
+		} else if register == 43 {
+			fmt.Println("Cell Balance:", reg)
+		} else if register == 44 {
+			//TODO: check if this is correct
+			fmt.Println("Bootloader Version:", reg)
+		} else {
+			continue
+		}
+	}
+
+	fmt.Println("-- END BMS PASSIVE STATUS --")
+
+	fmt.Println("-- BEGIN BMS FLASH STATUS --")
+
+	//
+	for register, reg := range regs {
+		if register == 48 {
+			// TODO: Check what this is, should be a hex output
+			fmt.Println("Fault Status:", reg)
+		} else if register == 49 {
+			// TODO: Reports records that are too high
+			fmt.Println("Battery Temperature Sensor 1 Record:", (reg-2731)/10, "°C")
+		} else if register == 50 {
+			// TODO: Reports records that are too high
+			fmt.Println("Battery Temperature Sensor 2 Record:", (reg-2731)/10, "°C")
+		} else if register == 51 {
+			// TODO: Reports records that are too high
+			fmt.Println("MOSFET Temperature Record:", (reg-2731)/10, "°C")
+		} else if register == 52 {
+			fmt.Println("Battery Voltage Record:", reg, "mV")
+		} else if register == 53 {
+			fmt.Println("Current: ", (reg * 10), "mA")
+		} else if register == 54 {
+			fmt.Println("Full Charge Capacity:", reg, "%")
+		} else if register == 55 {
+			fmt.Println("Remaining Capacity:", reg, "%")
+		} else if register == 56 {
+			// TODO: shows 0 insted of Real State of Charge
+		} else if register == 57 {
+			// TODO: shows 0 insted of Absolute State of Charge
+		} else if register == 58 {
+			// TODO: shows 0 instead of Cycle Count
+		} else if register == 59 {
+			// register 59 to 68 are Cell Voltages from flash
+			// Values are either 0 or something odd
+		} else if register == 87 {
+			fmt.Println("Maximal recorded Charging Current:", (reg * 10), "mA")
+		} else if register == 88 {
+			fmt.Println("Maximal recorded Discharging Current:", (reg * 10), "mA")
+		} else if register == 89 {
+			fmt.Println("Maximal recorded Cell Temperature:", (reg-2731)/10, "°C")
+		} else if register == 90 {
+			fmt.Println("Minimal recorded Cell Temperature:", (reg-2731)/10, "°C")
+		} else if register == 91 {
+			fmt.Println("Maximal recorded MOSFET Temperature:", (reg-2731)/10, "°C")
+		} else {
+			continue
+		}
+	}
+
+	fmt.Println("-- END BMS FLASH STATUS --")
+
+	fmt.Println("-- BEGIN TRIGGER VALUES --")
 
 	// Checking Proteection Statusses
 	for register, reg := range regs {
-		if register == 45 {
+		if register == 03 {
+
+		} else if register == 45 {
 			bmsUndervoltageCellProtection1 = reg
 			fmt.Println("Undervoltage Cell Protection 1 Trigger Value:", bmsUndervoltageCellProtection1, "mV")
 		} else if register == 46 {
@@ -132,37 +274,37 @@ func main() {
 		} else if register == 48 {
 			bmsOvervoltageCellProtection1 = reg
 			fmt.Println("Overvoltage Cell Protection 1 Trigger Value:", bmsOvervoltageCellProtection1, "mV")
-		} else if register == 67 {
-			fmt.Println("Discharge Over Temperature Protection:", reg)
-		} else if register == 68 {
-			fmt.Println("Discharge Under Temperature Protection:", reg)
-		} else if register == 69 {
-			fmt.Println("Charging Over Temperature Protection:", reg)
-		} else if register == 70 {
-			fmt.Println("Current Under Temperature Protection:", reg)
 		} else if register == 71 {
-			fmt.Println("Discharge Over Current Protection 1:", reg)
+			fmt.Println("Discharge Over Temperature Protection:", reg)
 		} else if register == 72 {
-			fmt.Println("Discharge Over Current Protection 2:", reg)
+			fmt.Println("Discharge Under Temperature Protection:", reg)
 		} else if register == 73 {
-			fmt.Println("Charging Over Current Protection 1:", reg)
+			fmt.Println("Charging Over Temperature Protection:", reg)
 		} else if register == 74 {
-			fmt.Println("Charging Over Current Protection 2:", reg)
+			fmt.Println("Current Under Temperature Protection:", reg)
 		} else if register == 75 {
-			fmt.Println("Over Voltage Protection 1:", reg)
+			fmt.Println("Discharge Over Current Protection 1:", reg)
 		} else if register == 76 {
-			fmt.Println("Over Voltage Protection 2:", reg)
+			fmt.Println("Discharge Over Current Protection 2:", reg)
 		} else if register == 77 {
-			fmt.Println("Undervoltage Cell Protection 1:", reg)
+			fmt.Println("Charging Over Current Protection 1:", reg)
 		} else if register == 78 {
-			fmt.Println("Undervoltage Cell Protection 2:", reg)
+			fmt.Println("Charging Over Current Protection 2:", reg)
 		} else if register == 79 {
-			fmt.Println("Peak Discharge Over Current Protection:", reg)
+			fmt.Println("Over Voltage Cell Protection 1:", reg)
 		} else if register == 80 {
-			fmt.Println("Peak Discharge Source/safety? Current Protection:", reg)
+			fmt.Println("Over Voltage Cell Protection 2:", reg)
 		} else if register == 81 {
-			fmt.Println("MOSFET (Metal Oxide Semiconductor Field-Effect Transistors) Output Temperature Protection:", reg)
+			fmt.Println("Under Voltage Cell Protection 1:", reg)
 		} else if register == 82 {
+			fmt.Println("Under Voltage Cell Protection 2:", reg)
+		} else if register == 83 {
+			fmt.Println("Peak Discharge Over Current Protection:", reg)
+		} else if register == 84 {
+			fmt.Println("Peak Discharge Source/safety? Current Protection:", reg)
+		} else if register == 85 {
+			fmt.Println("MOSFET (Metal Oxide Semiconductor Field-Effect Transistors) Output Temperature Protection:", reg)
+		} else if register == 86 {
 			fmt.Println("Source/safety? Current Protection:", reg)
 		} else {
 			continue
@@ -173,7 +315,7 @@ func main() {
 	// TODO: Sort Output
 	time.Sleep(time.Millisecond * 50)
 
-	fmt.Println("-- BEGIN VOLTAGES --")
+	fmt.Println("-- BEGIN LIVE VOLTAGES --")
 
 	// Voltage Cell Pack Monitoring
 	for register, reg := range regs {
@@ -235,7 +377,7 @@ func main() {
 
 	}
 
-	fmt.Println("-- END VOLTAGES --")
+	fmt.Println("-- END LIVE VOLTAGES --")
 
 	for register, reg := range regs {
 		if register == 2 {
