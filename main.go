@@ -62,42 +62,40 @@ func main() {
 	// DEBUG
 	fmt.Println("Modbus client created")
 
-	// Try to establish a connection to the BMS. If it fails, retry.
-	for i := 0; i < 50; i++ {
-		err = client.Open()
-		if err != nil {
-			time.Sleep(time.Millisecond * 500)
-			continue
-		} else {
-			break
-		}
-	}
-
-	// if the client is nil, error out
-	if client == nil {
-		log.Fatal("Failure opening client")
-	}
-
-	fmt.Println("Modbus client opened")
-	fmt.Println("Client:", client)
-	fmt.Println(client)
-	fmt.Println("Reading Registers... Attempts:")
-
-	// VanMoof / DynaPack BMS uses slave-id 170
-	client.SetUnitId(170)
-
 	// Read all BMS ModBus Addresses
 	for i := 0; i < 5; i++ {
+		// Try to establish a connection to the BMS. If it fails, retry.
+		for i := 0; i < 50; i++ {
+			err = client.Open()
+			if err != nil {
+				time.Sleep(time.Millisecond * 500)
+				continue
+			} else {
+				break
+			}
+		}
+
+		// if the client is nil, error out
+		if client == nil {
+			log.Fatal("Failure opening client")
+		}
+
+		fmt.Println("Modbus client opened")
+		//DEBUG
+		fmt.Println("Client:", client)
+		fmt.Println("Reading Registers... Attempts:")
+
+		// VanMoof / DynaPack BMS uses slave-id 170
+		client.SetUnitId(170)
+
 		regs, err = client.ReadRegisters(0x0, 95, modbus.HOLDING_REGISTER)
 		if err != nil {
-			//fmt.Printf("failed to read registers: %v\n", err)
-			time.Sleep(time.Millisecond * 500)
-			fmt.Print(" ", i) // Adds to Attempt ..
 			continue
 		} else {
 			break
 		}
 	}
+
 	if err != nil {
 		fmt.Println("Failed to connect to BMS. Check if VCC on SWD Interface has 2.5Volts!")
 		fmt.Println("Verify that RX/TX is connected correctly via JTAG BMS Version Output!")
