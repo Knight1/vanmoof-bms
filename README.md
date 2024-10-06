@@ -1,13 +1,32 @@
 # VanMooof BMS
 
+This is ONLY for the VanMoof SX3 / S4 
+Electrified S3 (VM13-144), Electrified X3, Electrified S4
+
+with the Battery Model Name / Product Code: VM13-147 from DynaPack from Taiwan.
+
+It uses ModBus via UART RS232. The VanMoof Electrified S5 uses CANBus. If you want to integrate that, have fun. You can contact me if you have a spare battery to play with. 
+
+For everything in here you need to remove the Battery from the Frame and be able to connect it to your PC. I suggest a raspberry pi.
+
 ## Connect to the BMS via UART
 
 Open minicom or Putty with a Baudrate ot 9600 bits.
 
+On the Raspberry Pi you have to enable the UART Pins via raspi-config, Interface Options, Serial Port, Enter, Enter, Reboot. 
+Connect the UART Pins with Cables to the BMS. RX to TX and TX to RX, TEST to Ground, Ground to Ground. 
+
 Click into the window. You must have TEST connected to Ground. You can check that the connection works by removing and reconnecting TEST to Ground. It will display a Message with "I am **G?** VanMoof **Version** **Build Date** **Build Time**". Only proceed if this happens.
 
+## FAQ
 
-## Clear Power Failure
+### Can i update the BMS?
+
+In theory yes, but this is another Level. 
+
+## UART Commands
+
+### Clear Power Failure
 
 To clear *ANY* Power Failure if the Tool displays a BMS Shutdown.
 
@@ -30,13 +49,13 @@ If you fixed the BMS correctly. You *MUST* have the full pack Voltage across bot
 You can also fix the BMS Error State by conencting to the SWD Port on the internal side of the PCB and set the Value 0x08080001 to "03" in the EEPROM. This is the same as setting it via the UART Console. 
 
 
-## Clear Logs
+### Clear Logs
 
 ```
 Log Clear
 ```
 
-## Clear Serial Number
+### Clear Serial Number
 
 ```
 Reset ESN
@@ -45,21 +64,21 @@ Reset ESN
 It will Display Done if success, Reset ESN fail if the command failed
 
 
-## Calibrate Discharge Current
+### Calibrate Discharge Current
 
 x in mAh
 ```
 DSG CAL=x
 ```
 
-## Calibrate Charge Current
+### Calibrate Charge Current
 
 x in mAh
 ```
 CHG CAL=x
 ```
 
-# Reset BMS (untested!)
+### Reset BMS (untested!)
 
 This resets the BMS. This removes the Serial Number, any calibration and the Charge Cycles. As far as i know. 
 
