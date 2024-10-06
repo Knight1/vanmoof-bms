@@ -1,6 +1,6 @@
 # VanMooof BMS
 
-This is ONLY for the VanMoof SX3 / S4 
+This is **ONLY** for the VanMoof SX3 / S4 
 Electrified S3 (VM13-144), Electrified X3, Electrified S4
 
 with the Battery Model Name / Product Code: VM13-147 from DynaPack from Taiwan.
@@ -32,17 +32,21 @@ To clear *ANY* Power Failure if the Tool displays a BMS Shutdown.
 
 - Make sure that the Cells are in good shape, the Battery does not have *ANY* Leaks, deformation or burn marks on or IN it!
 - If the Battery is leaking or have burn markings make sure you give it to someone who knows how to recycle it properly.
-- If the BMS triggered the Heating Element in the Fuse. This has a reason. UNDER NO CIRCUMSTANCES YOU SHOULD SHORT ANY FUSE. If you do you shall not have the privilage to use electicity!
+- If the BMS triggered the Heating Element in the Fuse. This has a reason. **UNDER NO CIRCUMSTANCES YOU SHOULD SHORT ANY FUSE**. If you do you shall not have the privilage to use electicity!
 - Fuses are good and they have a Reason to exist!
 - If you clear the Power Failure the BMS seems to just reboot and not check for problems again. So be sure that the Battery is in a good shape!
 
-Click into the Window and Write
+<details>
+  <summary>I'll be careful, i promise!</summary>
+    Click into the Window and Write
 
-```
-PF=0
-```
+    ```
+    PF=0
+    ```
+</details>
 
-The BMS will give you a Message with "OK" and it will reboot. After you see the Startup Message, the Power Failure should now be reset. But only on the Software side. If the Fuse is burnt or something else is off then the Bike will still show Errors. You can also test if the BMS would output Electricity by shorting TEST to Ground and Shorting the Fuse. If you get the full pack Voltage the BMS Error is cleared. The bike might still show error 19 if the 0 Ohm ressistors or the capacitors near the LSI Chip are broken / burnt. 
+
+The BMS will give you a Message with "OK" and it will reboot. After you see the Startup Message, the Power Failure should now be reset. But only on the Software side. If the Fuse is burnt or something else is off then the Bike will still show Errors. You can also test if the BMS would output Electricity by shorting TEST to Ground and shorting the Fuse with a wire. Yes, this is fine. There is no Load connected, just your Multimeter. If you get the full pack Voltage the BMS Error is cleared. The bike might still show error 19 if the 0 Ohm ressistors or the capacitors near the LSI Chip are broken / burnt. 
 
 If you fixed the BMS correctly. You *MUST* have the full pack Voltage across both Discharge Ports when you Short TEST to GND. If there is no Pack Voltage on the Discharge Port then the Battery is still not fixed.
 
