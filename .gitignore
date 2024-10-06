@@ -1,2 +1,5 @@
 # Ignore Binaries
 bms
+
+# Ignore VMManager.xml
+VMManager.xml
