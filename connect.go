@@ -8,7 +8,7 @@ import (
 	"github.com/simonvetter/modbus"
 )
 
-func connectToBMS(client *modbus.ModbusClient) (error, []uint16) {
+func connectToBMS(client *modbus.ModbusClient, debug bool) error {
 	// Read all BMS ModBus Addresses
 	for attempt := 0; attempt < int(connectionRetries); attempt++ {
 		fmt.Println("Trying to connect to BMS via ModBus. Attempt:", attempt+1)
@@ -20,17 +20,17 @@ func connectToBMS(client *modbus.ModbusClient) (error, []uint16) {
 			continue
 		}
 
-		defer client.Close()
-
 		fmt.Println("Modbus client opened")
 		//DEBUG
-		fmt.Println("Client:", client)
-		fmt.Println("Reading Registers... Please wait!")
-
+		if debug {
+			fmt.Println("Client:", client)
+			fmt.Println("Reading Registers... Please wait!")
+		}
 		// VanMoof / DynaPack BMS uses slave-id 170
 		client.SetUnitId(DynaPackVanMoofSlaveID)
 
-		regs, err = client.ReadRegisters(0x0, 95, modbus.HOLDING_REGISTER)
+		// Getting Fault Status to check if BMS is answering
+		_, err = client.ReadRegisters(0x0002, 1, modbus.HOLDING_REGISTER)
 		if err != nil {
 			fmt.Println("Failed to read registers. Error:", err)
 			continue
@@ -47,5 +47,14 @@ func connectToBMS(client *modbus.ModbusClient) (error, []uint16) {
 		os.Exit(1)
 	}
 
-	return nil, regs
+	return nil
+}
+
+func readRegisters(client *modbus.ModbusClient, startAddress, quantity uint16) ([]uint16, error) {
+	regs, err = client.ReadRegisters(startAddress, quantity, modbus.HOLDING_REGISTER)
+	if err != nil {
+		fmt.Println("Failed to read registers. Error:", err)
+	}
+
+	return regs, err
 }
