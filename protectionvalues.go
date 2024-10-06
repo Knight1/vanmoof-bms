@@ -13,9 +13,9 @@ func getAndShowProtectionBMSValues() {
 		switch register {
 		case 2:
 			if value == 0 {
-				fmt.Println("BMS Fault Status: OK")
+				fmt.Println("BMS STATUS OK!")
 			} else {
-				fmt.Println("BMS Fault Status Code:", value)
+				fmt.Println("BMS SHUTDOWN!")
 			}
 		case 03:
 			// TODO:
