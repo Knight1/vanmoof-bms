@@ -37,12 +37,12 @@ To clear *ANY* Power Failure if the Tool displays a BMS Shutdown.
 - If you clear the Power Failure the BMS seems to just reboot and not check for problems again. So be sure that the Battery is in a good shape!
 
 <details>
-  <summary>I'll be careful, i promise!</summary>
+    <summary><b>I'll be careful, i promise! </b></summary> 
     Click into the Window and Write
 
-    ```
-    PF=0
-    ```
+```console
+PF=0
+```
 </details>
 
 
@@ -55,13 +55,13 @@ You can also fix the BMS Error State by conencting to the SWD Port on the intern
 
 ### Clear Logs
 
-```
+```console
 Log Clear
 ```
 
 ### Clear Serial Number
 
-```
+```console
 Reset ESN
 ```
 
@@ -71,14 +71,16 @@ It will Display Done if success, Reset ESN fail if the command failed
 ### Calibrate Discharge Current
 
 x in mAh
-```
+
+```console
 DSG CAL=x
 ```
 
 ### Calibrate Charge Current
 
 x in mAh
-```
+
+```console
 CHG CAL=x
 ```
 
@@ -87,6 +89,6 @@ CHG CAL=x
 This resets the BMS. This removes the Serial Number, any calibration and the Charge Cycles. As far as i know. 
 
 
-```
+```console
 Reset BMS V0106
 ```
