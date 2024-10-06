@@ -1,15 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/simonvetter/modbus"
 )
 
-func createModbusClient() (*modbus.ModbusClient, error) {
+func createModbusClient(device string) (*modbus.ModbusClient, error) {
 	// for an RTU (serial) device/bus
 	return modbus.NewClient(&modbus.ClientConfiguration{
-		URL:      "rtu:///dev/serial0",
+		URL:      fmt.Sprintf("rtu://%s", device),
 		Speed:    9600,
 		DataBits: 8,
 		Parity:   modbus.PARITY_NONE,

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"os"
 	"runtime"
 	"time"
 
@@ -21,14 +20,20 @@ var (
 	GoVersion  string
 )
 
+const (
+	connectionRetries      uint8 = 5
+	connectionRetryDelay         = 500 * time.Millisecond
+	DynaPackVanMoofSlaveID uint8 = 170
+)
+
+var (
+	regs []uint16
+	err  error
+)
+
 func main() {
 	var client *modbus.ModbusClient
-	var err error
-	var regs []uint16
 	var milliVolts float64
-	const DynaPackVanMoofSlaveID uint8 = 170
-	const connectionRetries uint8 = 5
-	const connectionRetryDelay = 500 * time.Millisecond
 
 	// Define Threasholds
 	const cellVoltageLow uint16 = 2500
@@ -51,7 +56,8 @@ func main() {
 	fmt.Println("Starting VanMoof / DynaPack BMS Toolkit")
 	fmt.Println("Go version:", runtime.Version(), "Version:", GoVersion, "BuildTime:", BuildTime, "CommitHash:", CommitHash, "Git:", GitTag, "GOOS:", GOOS, "GOARCH:", GOARCH)
 
-	client, err = createModbusClient()
+	// TODO: make it possible to pass the device as a parameter
+	client, err = createModbusClient("/dev/serial0")
 	if err != nil {
 		log.Fatalf("Failed to create Modbus client.Maybe the Probe is disconnected? Check the Address of the Device! Error: %v", err)
 	}
@@ -60,42 +66,8 @@ func main() {
 	// DEBUG
 	fmt.Println("Modbus client created")
 
-	// Read all BMS ModBus Addresses
-	for attempt := 0; attempt < int(connectionRetries); attempt++ {
-		fmt.Println("Trying to connect to BMS via ModBus. Attempt:", attempt+1)
-		// Try to establish a connection to the BMS. If it fails, retry.
-		err = client.Open()
-		if err != nil {
-			fmt.Println("Failure opening client. Waiting and retrying in 500ms.")
-			time.Sleep(connectionRetryDelay)
-			continue
-		}
-
-		defer client.Close()
-
-		fmt.Println("Modbus client opened")
-		//DEBUG
-		fmt.Println("Client:", client)
-		fmt.Println("Reading Registers... Please wait!")
-
-		// VanMoof / DynaPack BMS uses slave-id 170
-		client.SetUnitId(DynaPackVanMoofSlaveID)
-
-		regs, err = client.ReadRegisters(0x0, 95, modbus.HOLDING_REGISTER)
-		if err != nil {
-			fmt.Println("Failed to read registers. Error:", err)
-			continue
-		} else {
-			break
-		}
-	}
-
-	if err != nil || client == nil {
-		fmt.Println("Failed to connect to BMS. Check if VCC on SWD Interface has 2.5Volts!")
-		fmt.Println("Verify that RX/TX is connected correctly via JTAG BMS Version Output!")
-		fmt.Println("Also make sure TEST is connected to GND. Otherwise the BMS will sleep and not respond!")
-		fmt.Println("Thanks for keeping the World a better place!")
-		os.Exit(1)
+	if err, regs = connectToBMS(client); err != nil {
+		log.Fatalf("Failed to connect to BMS: %v", err)
 	}
 
 	// Debug Output
@@ -109,80 +81,80 @@ func main() {
 
 	fmt.Println("-- BEGIN BMS PASSIVE STATUS --")
 
-	for register, reg := range regs {
+	for register, value := range regs {
 		switch register {
 		case 2:
 			// TODO: Check what this is, should be a hex output
-			fmt.Println("BMS Fault Status:", reg)
+			fmt.Println("BMS Fault Status:", value)
 		case 3:
-			batteryTemperature := (reg - 2731) / 10
+			batteryTemperature := calculateCelsius(value)
 			fmt.Println("Battery Temperature:", batteryTemperature, "°C")
 		case 4:
-			batteryVoltage := reg
+			batteryVoltage := value
 			fmt.Println("Battery Voltage:", batteryVoltage, "mV")
 		case 5:
-			fmt.Println("Real State of Charge:", reg, "%")
+			fmt.Println("Real State of Charge:", value, "%")
 		case 6:
-			fmt.Println("Current:", (reg * 10), "mA")
+			fmt.Println("Current:", calculateAmperes(value), "mA")
 		case 7:
 			// TODO: should be a hex output
-			fmt.Println("Charging Status:", reg)
+			fmt.Println("Charging Status:", value)
 		case 8:
-			fmt.Println("Charging on/off:", reg)
+			fmt.Println("Charging on/off:", value)
 		case 9:
-			fmt.Println("Test Mode:", reg)
+			fmt.Println("Test Mode:", value)
 		case 10:
 			// TODO: Compare this. Hardware and Software Version are broken
-			fmt.Println("Hardware Version:", reg)
+			fmt.Println("Hardware Version:", value)
 		case 11:
 			// TODO: Compare this. Hardware and Software Version are broken
-			fmt.Println("Software Version:", reg)
+			fmt.Println("Software Version:", value)
 		case 15:
-			fmt.Println("Normal Capacity:", reg, "mAh")
+			fmt.Println("Normal Capacity:", value, "mAh")
 		case 19:
-			fmt.Println("Cycle Count:", reg)
+			fmt.Println("Cycle Count:", value)
 		case 27:
-			fmt.Println("Cell 1 Voltage:", reg, "mV")
+			fmt.Println("Cell 1 Voltage:", value, "mV")
 		case 28:
-			fmt.Println("Cell 2 Voltage:", reg, "mV")
+			fmt.Println("Cell 2 Voltage:", value, "mV")
 		case 29:
-			fmt.Println("Cell 3 Voltage:", reg, "mV")
+			fmt.Println("Cell 3 Voltage:", value, "mV")
 		case 30:
-			fmt.Println("Cell 4 Voltage:", reg, "mV")
+			fmt.Println("Cell 4 Voltage:", value, "mV")
 		case 31:
-			fmt.Println("Cell 5 Voltage:", reg, "mV")
+			fmt.Println("Cell 5 Voltage:", value, "mV")
 		case 32:
-			fmt.Println("Cell 6 Voltage:", reg, "mV")
+			fmt.Println("Cell 6 Voltage:", value, "mV")
 		case 33:
-			fmt.Println("Cell 7 Voltage:", reg, "mV")
+			fmt.Println("Cell 7 Voltage:", value, "mV")
 		case 34:
-			fmt.Println("Cell 8 Voltage:", reg, "mV")
+			fmt.Println("Cell 8 Voltage:", value, "mV")
 		case 35:
-			fmt.Println("Cell 9 Voltage:", reg, "mV")
+			fmt.Println("Cell 9 Voltage:", value, "mV")
 		case 36:
-			fmt.Println("Cell 10 Voltage:", reg, "mV")
+			fmt.Println("Cell 10 Voltage:", value, "mV")
 		case 37:
-			fmt.Println("Temperature Sensor 1:", (reg-2731)/10, "°C")
+			fmt.Println("Temperature Sensor 1:", calculateCelsius(value), "°C")
 		case 38:
-			fmt.Println("Temperature Sensor 2:", (reg-2731)/10, "°C")
+			fmt.Println("Temperature Sensor 2:", calculateCelsius(value), "°C")
 		case 39:
-			fmt.Println("Discharge MOSFET Temperature:", (reg-2731)/10, "°C")
+			fmt.Println("Discharge MOSFET Temperature:", calculateCelsius(value), "°C")
 		case 40:
-			fmt.Println("Warning Status:", reg)
+			fmt.Println("Warning Status:", value)
 		case 41:
-			cellVoltageHighest = reg
+			cellVoltageHighest = value
 			fmt.Println("Maximum Battery Voltage:", cellVoltageHighest, "mV")
 		case 42:
-			cellVoltageLowest = reg
+			cellVoltageLowest = value
 			fmt.Println("Minimum Battery Voltage:", cellVoltageLowest, "mV")
 			if math.Abs(float64(cellVoltageHighest-cellVoltageLowest)) > 20 {
 				fmt.Println("WARNING: Voltage Imbalance in Cells!")
 			}
 		case 43:
-			fmt.Println("Cell Balance:", reg)
+			fmt.Println("Cell Balance:", value)
 		case 44:
 			//TODO: check if this is correct
-			fmt.Println("Bootloader Version:", reg)
+			fmt.Println("Bootloader Version:", value)
 		default:
 			continue
 		}
@@ -193,28 +165,28 @@ func main() {
 	fmt.Println("-- BEGIN BMS FLASH STATUS --")
 
 	//
-	for register, reg := range regs {
+	for register, value := range regs {
 		switch register {
 		case 48:
 			// TODO: Check what this is, should be a hex output
-			fmt.Println("Fault Status:", reg)
+			fmt.Println("Fault Status:", value)
 		case 49:
 			// TODO: Reports records that are too high
-			fmt.Println("Battery Temperature Sensor 1 Record:", (reg-2731)/10, "°C")
+			fmt.Println("Battery Temperature Sensor 1 Record:", calculateCelsius(value), "°C")
 		case 50:
 			// TODO: Reports records that are too high
-			fmt.Println("Battery Temperature Sensor 2 Record:", (reg-2731)/10, "°C")
+			fmt.Println("Battery Temperature Sensor 2 Record:", calculateCelsius(value), "°C")
 		case 51:
 			// TODO: Reports records that are too high
-			fmt.Println("MOSFET Temperature Record:", (reg-2731)/10, "°C")
+			fmt.Println("MOSFET Temperature Record:", calculateCelsius(value), "°C")
 		case 52:
-			fmt.Println("Battery Voltage Record:", reg, "mV")
+			fmt.Println("Battery Voltage Record:", value, "mV")
 		case 53:
-			fmt.Println("Current: ", (reg * 10), "mA")
+			fmt.Println("Current: ", calculateAmperes(value), "mA")
 		case 54:
-			fmt.Println("Full Charge Capacity:", reg, "%")
+			fmt.Println("Full Charge Capacity:", value, "%")
 		case 55:
-			fmt.Println("Remaining Capacity:", reg, "%")
+			fmt.Println("Remaining Capacity:", value, "%")
 		case 56:
 			// TODO: shows 0 insted of Real State of Charge
 		case 57:
@@ -225,15 +197,15 @@ func main() {
 			// register 59 to 68 are Cell Voltages from flash
 			// Values are either 0 or something odd
 		case 87:
-			fmt.Println("Maximal recorded Charging Current:", (reg * 10), "mA")
+			fmt.Println("Maximal recorded Charging Current:", calculateAmperes(value), "mA")
 		case 88:
-			fmt.Println("Maximal recorded Discharging Current:", (reg * 10), "mA")
+			fmt.Println("Maximal recorded Discharging Current:", calculateAmperes(value), "mA")
 		case 89:
-			fmt.Println("Maximal recorded Cell Temperature:", (reg-2731)/10, "°C")
+			fmt.Println("Maximal recorded Cell Temperature:", calculateCelsius(value), "°C")
 		case 90:
-			fmt.Println("Minimal recorded Cell Temperature:", (reg-2731)/10, "°C")
+			fmt.Println("Minimal recorded Cell Temperature:", calculateCelsius(value), "°C")
 		case 91:
-			fmt.Println("Maximal recorded MOSFET Temperature:", (reg-2731)/10, "°C")
+			fmt.Println("Maximal recorded MOSFET Temperature:", calculateCelsius(value), "°C")
 		default:
 			continue
 		}
@@ -244,54 +216,54 @@ func main() {
 	fmt.Println("-- BEGIN TRIGGER VALUES --")
 
 	// Checking Proteection Statusses
-	for register, reg := range regs {
+	for register, value := range regs {
 		switch register {
 		case 03:
 
 		case 45:
-			bmsUndervoltageCellProtection1 = reg
+			bmsUndervoltageCellProtection1 = value
 			fmt.Println("Undervoltage Cell Protection 1 Trigger Value:", bmsUndervoltageCellProtection1, "mV")
 		case 46:
-			bmsUndervoltageCellProtection2 = reg
+			bmsUndervoltageCellProtection2 = value
 			fmt.Println("Undervoltage Cell Protection 2 Trigger Value:", bmsUndervoltageCellProtection2, "mV")
 		case 47:
-			bmsUndervoltageCellShutdown = reg
+			bmsUndervoltageCellShutdown = value
 			fmt.Println("Undervoltage Cell Shutdown Trigger Value:", bmsUndervoltageCellShutdown, "mV")
 		case 48:
-			bmsOvervoltageCellProtection1 = reg
+			bmsOvervoltageCellProtection1 = value
 			fmt.Println("Overvoltage Cell Protection 1 Trigger Value:", bmsOvervoltageCellProtection1, "mV")
 		case 71:
-			fmt.Println("Discharge Over Temperature Protection:", reg)
+			fmt.Println("Discharge Over Temperature Protection:", value)
 		case 72:
-			fmt.Println("Discharge Under Temperature Protection:", reg)
+			fmt.Println("Discharge Under Temperature Protection:", value)
 		case 73:
-			fmt.Println("Charging Over Temperature Protection:", reg)
+			fmt.Println("Charging Over Temperature Protection:", value)
 		case 74:
-			fmt.Println("Current Under Temperature Protection:", reg)
+			fmt.Println("Current Under Temperature Protection:", value)
 		case 75:
-			fmt.Println("Discharge Over Current Protection 1:", reg)
+			fmt.Println("Discharge Over Current Protection 1:", value)
 		case 76:
-			fmt.Println("Discharge Over Current Protection 2:", reg)
+			fmt.Println("Discharge Over Current Protection 2:", value)
 		case 77:
-			fmt.Println("Charging Over Current Protection 1:", reg)
+			fmt.Println("Charging Over Current Protection 1:", value)
 		case 78:
-			fmt.Println("Charging Over Current Protection 2:", reg)
+			fmt.Println("Charging Over Current Protection 2:", value)
 		case 79:
-			fmt.Println("Over Voltage Cell Protection 1:", reg)
+			fmt.Println("Over Voltage Cell Protection 1:", value)
 		case 80:
-			fmt.Println("Over Voltage Cell Protection 2:", reg)
+			fmt.Println("Over Voltage Cell Protection 2:", value)
 		case 81:
-			fmt.Println("Under Voltage Cell Protection 1:", reg)
+			fmt.Println("Under Voltage Cell Protection 1:", value)
 		case 82:
-			fmt.Println("Under Voltage Cell Protection 2:", reg)
+			fmt.Println("Under Voltage Cell Protection 2:", value)
 		case 83:
-			fmt.Println("Peak Discharge Over Current Protection:", reg)
+			fmt.Println("Peak Discharge Over Current Protection:", value)
 		case 84:
-			fmt.Println("Peak Discharge Source/safety? Current Protection:", reg)
+			fmt.Println("Peak Discharge Source/safety? Current Protection:", value)
 		case 85:
-			fmt.Println("MOSFET (Metal Oxide Semiconductor Field-Effect Transistors) Output Temperature Protection:", reg)
+			fmt.Println("MOSFET (Metal Oxide Semiconductor Field-Effect Transistors) Output Temperature Protection:", value)
 		case 86:
-			fmt.Println("Source/safety? Current Protection:", reg)
+			fmt.Println("Source/safety? Current Protection:", value)
 		default:
 			continue
 		}
@@ -304,8 +276,8 @@ func main() {
 	fmt.Println("-- BEGIN LIVE VOLTAGES --")
 
 	// Voltage Cell Pack Monitoring
-	for register, reg := range regs {
-		milliVolts = float64(reg) / 1000
+	for register, value := range regs {
+		milliVolts = float64(value) / 1000
 		switch register {
 		case 4:
 			fmt.Println("Pack:", milliVolts, "Volts")
@@ -338,37 +310,37 @@ func main() {
 		}
 
 		// Verify if Voltage is to low, to high
-		if register != 4 && reg < cellVoltageLow {
+		if register != 4 && value < cellVoltageLow {
 			fmt.Println("Voltage in Cell to LOW!", register)
-		} else if register != 4 && reg > cellVoltageHigh {
+		} else if register != 4 && value > cellVoltageHigh {
 			fmt.Println("Voltage in Cell to HIGH!", register)
 		}
 
 		// TODO: Define Pack Voltage Limits from BMS!
-		if register == 4 && reg < packVoltageLow {
+		if register == 4 && value < packVoltageLow {
 			fmt.Println("Voltage in Pack to LOW!")
-		} else if register == 4 && reg > packVoltageHigh {
+		} else if register == 4 && value > packVoltageHigh {
 			fmt.Println("Voltage in Pack to HIGH!")
 		}
 
 		// TODO: Check Voltage imbalance trigger
 		// Check for Voltage Imbalances in the Cells
-		diff := math.Abs(float64(cellVoltagePrevious - reg))
+		diff := math.Abs(float64(cellVoltagePrevious - value))
 		if diff > float64(cellVoltageImbalance) {
 			//fmt.Println("Voltage Imbalance in Cells!")
-			fmt.Println("DEBUG: Value ", reg, "differs from previous value by more than", diff)
+			fmt.Println("DEBUG: Value ", value, "differs from previous value by more than", diff)
 		}
-		cellVoltagePrevious = reg
-		//fmt.Println("DEBUG: Value", reg, "differs from previous value by", diff)
+		cellVoltagePrevious = value
+		//fmt.Println("DEBUG: Value", value, "differs from previous value by", diff)
 
 	}
 
 	fmt.Println("-- END LIVE VOLTAGES --")
 
-	for register, reg := range regs {
+	for register, value := range regs {
 		if register == 2 {
-			if reg != 0 {
-				fmt.Println("ALARM: ", reg)
+			if value != 0 {
+				fmt.Println("ALARM: ", value)
 				fmt.Println("BMS SHUTDOWN!")
 			} else {
 				fmt.Println("BMS STATUS OK!")
@@ -379,4 +351,12 @@ func main() {
 
 	// close the TCP connection/serial port
 	client.Close()
+}
+
+func calculateCelsius(value uint16) float64 {
+	return float64(value-2731) / 10
+}
+
+func calculateAmperes(value uint16) float64 {
+	return float64(value) / 10
 }
