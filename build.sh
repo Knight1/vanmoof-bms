@@ -33,7 +33,6 @@ TRG_PKG='main'
 FLAG="-X $TRG_PKG.BuildTime=$BUILDTIME"
 FLAG="$FLAG -X $TRG_PKG.CommitHash=$CommitHash"
 FLAG="$FLAG -X $TRG_PKG.GoVersion=$GoVersion"
-FLAG="$FLAG -X $TRG_PKG.GitTag=$GitTag"
 FLAG="$FLAG -X $TRG_PKG.GOOS=$GOOS"
 FLAG="$FLAG -X $TRG_PKG.GOARCH=$GOARCH"
 FLAG="$FLAG -s -w"
@@ -41,5 +40,6 @@ FLAG="$FLAG -s -w"
 
 
 garble build -ldflags ${FLAG}
-upx -9 --best bms
+#go test -v ./...
+#upx -9 --best bms
 scp bms root@10.0.0.7:/root/VanMoooof-bms/bms
