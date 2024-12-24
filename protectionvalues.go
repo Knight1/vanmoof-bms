@@ -7,29 +7,25 @@ import (
 func getAndShowProtectionBMSValues() {
 
 	fmt.Println("-- BEGIN TRIGGER AND PROTECTION VALUES --")
+	fmt.Println("Trigger Values are best guess. DynaPack does not specify them.")
 
 	// Checking Proteection Statusses
 	for register, value := range regs {
 		switch register {
-		case 2:
-			if value == 0 {
-				fmt.Println("BMS STATUS OK!")
-			} else {
-				fmt.Println("BMS SHUTDOWN!")
-			}
-		case 03:
-			// TODO:
 		case 45:
-			// TODO: check values 45 to 48 about plausibility
+			// GUESS
 			bmsUndervoltageCellProtection1 = value
 			fmt.Println("Undervoltage Cell Protection 1 Trigger Value:", bmsUndervoltageCellProtection1, "mV")
 		case 46:
+			// GUESS
 			bmsUndervoltageCellProtection2 = value
 			fmt.Println("Undervoltage Cell Protection 2 Trigger Value:", bmsUndervoltageCellProtection2, "mV")
 		case 47:
+			// GUESS
 			bmsUndervoltageCellShutdown = value
 			fmt.Println("Undervoltage Cell Shutdown Trigger Value:", bmsUndervoltageCellShutdown, "mV")
 		case 48:
+			// GUESS
 			bmsOvervoltageCellProtection1 = value
 			fmt.Println("Overvoltage Cell Protection 1 Trigger Value:", bmsOvervoltageCellProtection1, "mV")
 		case 71:
@@ -59,11 +55,11 @@ func getAndShowProtectionBMSValues() {
 		case 83:
 			fmt.Println("(PDOCP) Peak Discharge Over Current Protection:", value)
 		case 84:
-			fmt.Println("(PDSCT) Peak Discharge Source/safety? Current Protection:", value)
+			fmt.Println("(PDSCT) Peak Discharge Short Circuit Protection:", value)
 		case 85:
-			fmt.Println("(MOTP) MOSFET (Metal Oxide Semiconductor Field-Effect Transistors) Output Temperature Protection:", value)
+			fmt.Println("(MOTP) MOSFET (Metal Oxide Semiconductor Field-Effect Transistors) Over Temperature Protection:", value)
 		case 86:
-			fmt.Println("(SCP) Source/safety? Current Protection:", value)
+			fmt.Println("(SCP) Short Circuit Protection:", value)
 		default:
 			continue
 		}
