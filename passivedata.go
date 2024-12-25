@@ -10,65 +10,26 @@ func getAndShowPassiveBMSData() {
 
 	for register, value := range regs {
 		switch register {
-		case 2:
-			if value == 0 {
-				fmt.Println("BMS STATUS OK!")
-			} else {
-				fmt.Println("BMS SHUTDOWN!")
-				fmt.Printf("Register 0x%X ('Fault Status'): 0x%04X\n", 0x2, value)
-
-				// Decode flags (bitwise operations)
-				flags := []string{"DOTP", "DUTP", "COTP", "CUTP", "DOCP1", "DOCP2", "COCP1", "COCP2", "OVP1", "OVP2", "UVP1", "UVP2", "PDOCP", "PDSCP", "MOTP", "SCP"}
-				for i, flag := range flags {
-					if value&(1<<i) != 0 {
-						fmt.Printf(" - %s is set\n", flag)
-					}
-				}
-			}
+		case RegisterFault:
+			checkFaults(value)
 		case 3:
-			batteryTemperature := calculateCelsius(value)
-			fmt.Println("Battery Temperature:", batteryTemperature, "°C")
+			fmt.Println("Battery Temperature:", calculateCelsius(value), "°C")
 		case 4:
-			batteryVoltage := value
-			fmt.Println("Battery Voltage:", batteryVoltage, "mV")
+			fmt.Println("Battery Voltage:", value, "mV")
 		case 5:
 			fmt.Println("Real State of Charge:", value, "%")
 		case 6:
 			fmt.Println("Current:", calculateAmperes(value), "mA")
 		case 7:
-			// TODO: should be a hex output
-			fmt.Println("Charging Status:", value)
-			fmt.Printf("Register 0x%X ('Charging Status'): 0x%04X\n", 0x7, value)
-
-			// Decode flags (bitwise operations)
-			flags := []string{"RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "CHG_IN", "Fault", "CHG"}
-			for i, flag := range flags {
-				if value&(1<<i) != 0 {
-					fmt.Printf(" - %s is set\n", flag)
-				}
-			}
+			checkChargingStatus(value)
 		case 8:
-			fmt.Println("Discharging on/off:", value)
-			fmt.Printf("Register 0x%X ('Discharging Status'): 0x%04X\n", 0x8, value)
-
-			// Decode flags (bitwise operations)
-			flags := []string{"RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "DSG"}
-			for i, flag := range flags {
-				if value&(1<<i) != 0 {
-					fmt.Printf(" - %s is set\n", flag)
-				}
-			}
+			checkDischargingStatus(value)
 		case 9:
-			fmt.Println("Test Mode:", value)
-			fmt.Printf("Register 0x%X ('Test Mode'): 0x%04X\n", 0x9, value)
+			fmt.Printf("Test Mode: %04X\n", value)
 		case 10:
-			// TODO: Compare this. Hardware and Software Version are broken
-			fmt.Println("Hardware Version:", value)
-			fmt.Printf("Register 0x%X ('Hardware Version'): 0x%04X\n", 0x10, value)
+			fmt.Printf("Hardware Version:%04X\n", value)
 		case 11:
-			// TODO: Compare this. Hardware and Software Version are broken
-			fmt.Println("Software Version:", value)
-			fmt.Printf("Register 0x%X ('Software Version'): 0x%04X\n", 0x11, value)
+			fmt.Printf("Software Version: %04X\n", value)
 		case 12:
 			// Convert register data to ASCII string
 
@@ -109,15 +70,7 @@ func getAndShowPassiveBMSData() {
 		case 19:
 			fmt.Println("Cycle Count:", value)
 		case 26:
-			fmt.Printf("Register 0x%X ('CHG MOS Control'): 0x%04X\n", 0x26, value)
-
-			// Decode flags (bitwise operations)
-			flags := []string{"RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "RSVD", "CHG"}
-			for i, flag := range flags {
-				if value&(1<<i) != 0 {
-					fmt.Printf(" - %s is set\n", flag)
-				}
-			}
+			checkMOSControl(value)
 		case 27:
 			fmt.Println("Cell 1 Voltage:", value, "mV")
 		case 28:
@@ -145,19 +98,10 @@ func getAndShowPassiveBMSData() {
 		case 39:
 			fmt.Println("Discharge MOSFET Temperature:", calculateCelsius(value), "°C")
 		case 40:
-			fmt.Println("Warning Status:", value)
-			fmt.Printf("Register 0x%X ('Warning Status'): 0x%04X\n", 0x40, value)
-
-			// Decode flags (bitwise operations)
-			flags := []string{"DOTPW", "DUTPW", "COTPW", "CUTPW", "DOCPW", "RSVD", "COCPW", "RSVD", "OVP1W", "RSVD", "UVP1W", "SOC", "PDOCPW", "RSVD", "MOTPW", "RSVD"}
-			for i, flag := range flags {
-				if value&(1<<i) != 0 {
-					fmt.Printf(" - %s is set\n", flag)
-				}
-			}
+			checkWarnings(value)
 		case 41:
 			cellVoltageHighest = value
-			fmt.Println("Maximum Battery Voltage:", cellVoltageHighest, "mV")
+			fmt.Println("Maximum Battery Voltage:", value, "mV")
 		case 42:
 			cellVoltageLowest = value
 			fmt.Println("Minimum Battery Voltage:", cellVoltageLowest, "mV")
@@ -167,9 +111,7 @@ func getAndShowPassiveBMSData() {
 		case 43:
 			fmt.Println("Cell Balance:", value)
 		case 44:
-			//TODO: check if this is correct
-			fmt.Println("Bootloader Version:", value)
-			fmt.Printf("Register 0x%X ('Bootloader Version'): 0x%04X\n", 0x44, value)
+			fmt.Printf("Bootloader Version: %04X\n", value)
 		default:
 			continue
 		}

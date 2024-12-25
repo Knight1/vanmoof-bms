@@ -39,7 +39,7 @@ FLAG="$FLAG -s -w"
 
 
 
-garble build -ldflags ${FLAG}
-#go test -v ./...
+time garble build -ldflags ${FLAG}
 #upx -9 --best bms
+ls -lsah bms
 scp bms root@10.0.0.7:/root/VanMoooof-bms/bms

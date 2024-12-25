@@ -13,7 +13,6 @@ var (
 )
 
 const (
-	connectionRetries      uint8 = 5
 	connectionRetryDelay         = 500 * time.Millisecond
 	DynaPackVanMoofSlaveID uint8 = 170
 
@@ -25,9 +24,11 @@ const (
 )
 
 var (
-	regs       []uint16
-	err        error
-	milliVolts float64
+	connectionRetries uint64 = 5
+	regs              []uint16
+	err               error
+	milliVolts        float64
+	debug             bool = false
 
 	// Define holding registers
 	cellVoltageHighest = uint16(0)
@@ -43,4 +44,9 @@ var (
 	// Define Thresholds (own!)
 	cellVoltageImbalance uint16 = 5
 	cellVoltagePrevious  uint16 = 0
+)
+
+// ModBus Registers
+var (
+	RegisterFault = 2
 )

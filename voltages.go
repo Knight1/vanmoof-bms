@@ -16,7 +16,7 @@ func getAndShowPassiveVoltages() {
 		milliVolts = float64(value) / 1000
 		switch register {
 		case 4:
-			fmt.Println("Pack:  ", milliVolts, "Volts")
+			fmt.Println("Pack: ", milliVolts, "Volts")
 		case 27:
 			fmt.Println("Cell 1:", milliVolts, "Volts")
 		case 28:
@@ -38,8 +38,6 @@ func getAndShowPassiveVoltages() {
 		case 36:
 			fmt.Println("Cell X:", milliVolts, "Volts")
 
-			// TODO: Check if one cell is below these values
-
 		default:
 			// Skip everything else
 			continue
@@ -59,7 +57,6 @@ func getAndShowPassiveVoltages() {
 			fmt.Println("Voltage in Pack to HIGH!")
 		}
 
-		// TODO: Check Voltage imbalance trigger
 		// Check for Voltage Imbalances in the Cells from live Values by own means.
 		diff := math.Abs(float64(int(cellVoltagePrevious) - int(value)))
 		if diff > float64(cellVoltageImbalance) {
@@ -72,6 +69,8 @@ func getAndShowPassiveVoltages() {
 
 			}
 		}
+
+		// Ignore Pack Voltage and 0 Values
 		if register != 4 && value != 0 {
 			cellVoltagePrevious = value
 		}
