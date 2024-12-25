@@ -11,16 +11,24 @@ import (
 func connectToBMS(client *modbus.ModbusClient, debug bool) error {
 	// Read all BMS ModBus Addresses
 	for attempt := 0; attempt < int(connectionRetries); attempt++ {
-		fmt.Println("Trying to connect to BMS via ModBus. Attempt:", attempt+1)
-		// Try to establish a connection to the BMS. If it fails, retry.
+		if debug {
+			fmt.Println("Trying to connect to BMS via ModBus. Attempt:", attempt+1)
+		}
+
+		// Try to establish a connection to the BMS. If it fails, retry until we reach the connectionRetries limit.
 		err = client.Open()
 		if err != nil {
-			fmt.Println("Failure opening client. Waiting and retrying in 500ms.")
+			if debug {
+				fmt.Println("Failure opening client. Waiting and retrying in 500ms.")
+			}
 			time.Sleep(connectionRetryDelay)
 			continue
 		}
 
-		fmt.Println("Modbus client opened")
+		if debug {
+			fmt.Println("Modbus client opened")
+		}
+
 		//DEBUG
 		if debug {
 			fmt.Println("Client:", client)
@@ -32,7 +40,9 @@ func connectToBMS(client *modbus.ModbusClient, debug bool) error {
 		// Getting Fault Status to check if BMS is answering
 		_, err = client.ReadRegisters(0x0002, 1, modbus.HOLDING_REGISTER)
 		if err != nil {
-			fmt.Println("Failed to read registers. Error:", err)
+			if debug {
+				fmt.Println("Failed to read registers. Error:", err)
+			}
 			continue
 		} else {
 			break
@@ -40,6 +50,7 @@ func connectToBMS(client *modbus.ModbusClient, debug bool) error {
 	}
 
 	if err != nil || client == nil {
+		fmt.Println("Retry Counter exceeded. Giving Up. Retry counter:", connectionRetries)
 		fmt.Println("Failed to connect to BMS. Check if VCC on SWD Interface has 2.5Volts!")
 		fmt.Println("Verify that RX/TX is connected correctly via JTAG BMS Version Output!")
 		fmt.Println("Also make sure TEST is connected to GND. Otherwise the BMS will sleep and not respond!")
