@@ -15,7 +15,7 @@ func liveData(client *modbus.ModbusClient, debug bool) {
 		// 0x0000 is start otherwise the case statement will not work because 2 gets 0 there.
 		if regs, err = readRegisters(client, 0, 44); err != nil {
 			log.Printf("Failed to read registers: %v", err)
-			if err = connectToBMS(client, debug); err != nil {
+			if _, err := connectToBMS(client, debug); err != nil {
 				log.Printf("Failed to connect to BMS: %v", err)
 			}
 		}

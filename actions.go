@@ -1,16 +1,17 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"github.com/simonvetter/modbus"
 	"log"
-	"strings"
 
 	"go.bug.st/serial"
 )
 
 // actions
 
+// We send PF=0 over serial to clear all Power Failures.
+// This might need some tries also we might need to clear the Log first.
 func clearPF(serialPort string) {
 	// Open the serial port
 	mode := &serial.Mode{
@@ -26,53 +27,71 @@ func clearPF(serialPort string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//defer port.Close()
 
 	fmt.Println("Serial port opened")
 
-	// Write the string "PF=0" to the serial port
-	_, err = port.Write([]byte("PF=0"))
-	if err != nil {
-		log.Fatal(err)
+	for attempt := 0; attempt < int(connectionRetries); attempt++ {
+
+		// Write the string "PF=0" to the serial port
+		_, err = port.Write([]byte("PF=0"))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		port.Close()
+
+		fmt.Println("Sent PF=0 to serial port")
+
+		// Creates the Modbus connection with all relevant parameters and the port to use
+		client, err := createModbusClient(serialPort)
+		if err != nil {
+			log.Fatalf("Failed to create Modbus client. Maybe the Probe is disconnected? Check the Address of the Device! Error: %v", err)
+		}
+		defer client.Close()
+
+		if debug {
+			fmt.Println("Modbus client created")
+		}
+
+		// Loop for connecting to the bms. Loops until it reaches the end of connectionRetries
+		if err, _ := connectToBMS(client, debug); err != nil {
+			log.Fatalf("Failed to connect to BMS: %v", err)
+		}
+
+		//if fault == "0x0000" {
+
+		//}
 	}
+}
 
-	fmt.Println("Sent PF=0 to serial port")
-
-	// Buffer to store the response
-	buf := make([]byte, 1000) // Adjust buffer size as needed
-
-	scanner := bufio.NewScanner(port)
-	for scanner.Scan() {
-		fmt.Println("Got response")
-		fmt.Println(scanner.Text()) // Println will add back the final '\n'
-	}
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-
-	// Read the response from the serial port
-	n, err := port.Read(buf)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Read response from serial port")
-
-	// Convert the response to a string
-	response := string(buf[:n])
-	fmt.Println("Reading response from serial port. buf:", buf)
-
-	fmt.Println("Response converted to string")
-	fmt.Print("Response: ", response)
-
-	// Check if the response contains "OK"
-	if strings.Contains(response, "OK") {
-		fmt.Println("Response contains OK")
+func turnDebugOn(client *modbus.ModbusClient) {
+	if err = client.WriteRegister(0x9, 1); err != nil {
+		fmt.Println("Error setting Debug to On. Error:", err)
 	} else {
-		fmt.Println("Response does not contain OK")
+		fmt.Println("Debug set to On!")
 	}
+}
 
-	fmt.Printf("Received response: %s\n", response)
+func turnDebugOff(client *modbus.ModbusClient) {
+	if err = client.WriteRegister(0x9, 0); err != nil {
+		fmt.Println("Error setting Debug to Off. Error:", err)
+	} else {
+		fmt.Println("Debug set to Off!")
+	}
+}
 
-	// TODO: readRegisters(client, 2, 1) and check if status is 0. If not, retry
+func turnDischargingOn(client *modbus.ModbusClient) {
+	if err = client.WriteRegister(0x8, 0); err != nil {
+		fmt.Println("Error setting Discharging to Off. Error:", err)
+	} else {
+		fmt.Println("Discharging set to Off!")
+	}
+}
+
+func turnDischargingOff(client *modbus.ModbusClient) {
+	if err = client.WriteRegister(0x8, 0); err != nil {
+		fmt.Println("Error setting Discharging to Off. Error:", err)
+	} else {
+		fmt.Println("Discharging set to Off!")
+	}
 }

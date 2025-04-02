@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/simonvetter/modbus"
 )
@@ -49,8 +50,23 @@ func main() {
 	}
 
 	// Loop for connecting to the bms. Loops until it reaches the end of connectionRetries
-	if err = connectToBMS(client, debug); err != nil {
+	if _, err := connectToBMS(client, debug); err != nil {
 		log.Fatalf("Failed to connect to BMS: %v", err)
+	}
+
+	// Actions that need ModBus to be initialized
+	if strings.Contains("debug", *action) {
+		turnDebugOn(client)
+		os.Exit(0)
+	} else if strings.Contains("debugoff", *action) {
+		turnDebugOff(client)
+		os.Exit(0)
+	} else if strings.Contains("discharge", *action) {
+		turnDischargingOn(client)
+		os.Exit(0)
+	} else if strings.Contains("dischargeoff", *action) {
+		turnDischargingOff(client)
+		os.Exit(0)
 	}
 
 	if regs, err = readRegisters(client, 0, 95); err != nil {

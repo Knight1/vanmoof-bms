@@ -8,7 +8,7 @@ import (
 	"github.com/simonvetter/modbus"
 )
 
-func connectToBMS(client *modbus.ModbusClient, debug bool) error {
+func connectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, error error) {
 	// Read all BMS ModBus Addresses
 	for attempt := 0; attempt < int(connectionRetries); attempt++ {
 		if debug {
@@ -38,7 +38,7 @@ func connectToBMS(client *modbus.ModbusClient, debug bool) error {
 		client.SetUnitId(DynaPackVanMoofSlaveID)
 
 		// Getting Fault Status to check if BMS is answering
-		_, err = client.ReadRegisters(0x0002, 1, modbus.HOLDING_REGISTER)
+		fault, err = client.ReadRegisters(0x0002, 1, modbus.HOLDING_REGISTER)
 		if err != nil {
 			if debug {
 				fmt.Println("Failed to read registers. Error:", err)
@@ -58,7 +58,7 @@ func connectToBMS(client *modbus.ModbusClient, debug bool) error {
 		os.Exit(1)
 	}
 
-	return nil
+	return fault, nil
 }
 
 func readRegisters(client *modbus.ModbusClient, startAddress, quantity uint16) ([]uint16, error) {
