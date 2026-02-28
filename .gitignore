@@ -1,5 +1,9 @@
 # Ignore Binaries
-bms
+bms*
 
 # Ignore VMManager.xml
 VMManager.xml
+
+.idea/
+
+actions.txt
