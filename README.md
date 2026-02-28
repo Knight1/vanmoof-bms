@@ -1,13 +1,32 @@
 # VanMooof BMS
 
-This is **ONLY** for the VanMoof SX3 / S4 
-Electrified S3 (VM13-144), Electrified X3, Electrified S4
+This is **ONLY** for the VanMoof SX3 / S4 - Electrified S3 - (VM13-144), Electrified X3, Electrified S4 with the Battery Model Name / Product Code: VM13-147 from DynaPack from Taiwan.  
 
-with the Battery Model Name / Product Code: VM13-147 from DynaPack from Taiwan.
+It uses ModBus via UART RS232. The VanMoof Electrified S5 uses CANBus.  
 
-It uses ModBus via UART RS232. The VanMoof Electrified S5 uses CANBus. If you want to integrate that, have fun. You can contact me if you have a spare battery to play with. 
+For everything in here you need to remove the Battery from the Frame and be able to connect it to your PC. I suggest a Raspberry Pi.  
 
-For everything in here you need to remove the Battery from the Frame and be able to connect it to your PC. I suggest a raspberry pi.
+## Ports
+
+### SWD
+
+- VCC (3.3Vdc)
+- DIO
+- CLK
+- RST
+- GND
+
+### External
+
+```aiignore
+-----------------------------
+\ TEST | DET | TX | KEY_IN /
+ \  FAULT  |  GND  |  RX  /
+  \     CHG+  |  CHG-    /
+   \    DSG-  |  DSG+   /
+    --------------------
+  
+```
 
 ## Connect to the BMS via UART
 
@@ -22,7 +41,7 @@ Click into the window. You must have TEST connected to Ground. You can check tha
 
 ### Can i update the BMS?
 
-In theory yes, but this is another Level. 
+This is possible via modbus, the module does this. But it is fairly easy to update via SWD.
 
 ## UART Commands
 
