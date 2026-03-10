@@ -59,6 +59,12 @@ func GetAndShowPassiveBMSData() {
 
 		case 21: // 0x15
 			fmt.Println("Normal Capacity:", value, "mAh")
+		case 22: // 0x16
+			fmt.Println("Full Charge Capacity:", value, "mAh")
+		case 23: // 0x17
+			fmt.Println("Remaining Capacity:", value, "mAh")
+		case 24: // 0x18
+			fmt.Println("Absolute SOC:", value, "%")
 		case 25: // 0x19
 			fmt.Println("Cycle Count:", value)
 		case 26: // 0x1A
