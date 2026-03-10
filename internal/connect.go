@@ -8,7 +8,9 @@ import (
 	"github.com/simonvetter/modbus"
 )
 
-func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, error error) {
+func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, err error) {
+	var connectErr error
+
 	// Read all BMS ModBus Addresses
 	for attempt := 0; attempt < int(ConnectionRetries); attempt++ {
 		if debug {
@@ -16,8 +18,8 @@ func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, erro
 		}
 
 		// Try to establish a connection to the BMS. If it fails, retry until we reach the connectionRetries limit.
-		err = client.Open()
-		if err != nil {
+		connectErr = client.Open()
+		if connectErr != nil {
 			if debug {
 				fmt.Println("Failure opening client. Waiting and retrying in 500ms.")
 			}
@@ -38,10 +40,10 @@ func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, erro
 		client.SetUnitId(DynaPackVanMoofSlaveID)
 
 		// Getting Fault Status to check if BMS is answering
-		fault, err = client.ReadRegisters(0x0002, 1, modbus.HOLDING_REGISTER)
-		if err != nil {
+		fault, connectErr = client.ReadRegisters(0x0002, 1, modbus.HOLDING_REGISTER)
+		if connectErr != nil {
 			if debug {
-				fmt.Println("Failed to read registers. Error:", err)
+				fmt.Println("Failed to read registers. Error:", connectErr)
 			}
 			continue
 		} else {
@@ -49,7 +51,7 @@ func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, erro
 		}
 	}
 
-	if err != nil || client == nil {
+	if connectErr != nil || client == nil {
 		fmt.Println("Retry Counter exceeded. Giving Up. Retry counter:", ConnectionRetries)
 		fmt.Println("Failed to connect to BMS. Check if VCC on SWD Interface has 2.5Volts!")
 		fmt.Println("Verify that RX/TX is connected correctly via JTAG BMS Version Output!")
@@ -62,10 +64,12 @@ func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, erro
 }
 
 func ReadRegisters(client *modbus.ModbusClient, startAddress, quantity uint16) ([]uint16, error) {
-	Registers, err = client.ReadRegisters(startAddress, quantity, modbus.HOLDING_REGISTER)
-	if err != nil {
-		fmt.Println("Failed to read registers. Error:", err)
+	regs, readErr := client.ReadRegisters(startAddress, quantity, modbus.HOLDING_REGISTER)
+	if readErr != nil {
+		fmt.Println("Failed to read registers. Error:", readErr)
+		return regs, readErr
 	}
 
-	return Registers, err
+	Registers = regs
+	return Registers, nil
 }
