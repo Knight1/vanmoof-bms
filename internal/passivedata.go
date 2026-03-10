@@ -105,7 +105,7 @@ func GetAndShowPassiveBMSData() {
 		case 42:
 			cellVoltageLowest = value
 			fmt.Println("Minimum Battery Voltage:", cellVoltageLowest, "mV")
-			if math.Abs(float64(cellVoltageHighest-cellVoltageLowest)) > 20 {
+			if math.Abs(float64(int(cellVoltageHighest)-int(cellVoltageLowest))) > 20 {
 				fmt.Println("WARNING: Voltage Imbalance in Cells!")
 			}
 		case 43:
