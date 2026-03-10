@@ -45,6 +45,7 @@ func GetAndShowPassiveBMSData() {
 
 		case 19: // 0x13
 			// Manufacture Date: 4 bytes (2 registers 0x13-0x14) as DATE
+			// Data[1]/Data[2]/Data[3] (skip Data[0])
 			if len(Registers) < 21 {
 				fmt.Println("Manufacture Date: insufficient register data")
 				continue
@@ -54,7 +55,7 @@ func GetAndShowPassiveBMSData() {
 			for _, reg := range Registers[19:21] {
 				dateBytes = append(dateBytes, byte(reg>>8), byte(reg&0xFF))
 			}
-			fmt.Printf("Manufacture Date: %s\n", string(dateBytes))
+			fmt.Printf("Manufacture Date: %d/%d/%d\n", dateBytes[1], dateBytes[2], dateBytes[3])
 
 		case 21: // 0x15
 			fmt.Println("Normal Capacity:", value, "mAh")
