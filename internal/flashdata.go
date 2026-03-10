@@ -80,8 +80,29 @@ func GetAndShowFlashBMSData() {
 			}
 
 		case 59: // 0x3B
-			// register 59 to 68 are Cell Voltages from flash
-			// Values are either 0 or something odd
+			fmt.Println("Flash Cell 1 Voltage:", value, "mV")
+		case 60: // 0x3C
+			fmt.Println("Flash Cell 2 Voltage:", value, "mV")
+		case 61: // 0x3D
+			fmt.Println("Flash Cell 3 Voltage:", value, "mV")
+		case 62: // 0x3E
+			fmt.Println("Flash Cell 4 Voltage:", value, "mV")
+		case 63: // 0x3F
+			fmt.Println("Flash Cell 5 Voltage:", value, "mV")
+		case 64: // 0x40
+			fmt.Println("Flash Cell 6 Voltage:", value, "mV")
+		case 65: // 0x41
+			fmt.Println("Flash Cell 7 Voltage:", value, "mV")
+		case 66: // 0x42
+			fmt.Println("Flash Cell 8 Voltage:", value, "mV")
+		case 67: // 0x43
+			fmt.Println("Flash Cell 9 Voltage:", value, "mV")
+		case 68: // 0x44
+			fmt.Println("Flash Cell 10 Voltage:", value, "mV")
+		case 69: // 0x45
+			fmt.Println("Flash Max Vbatt Voltage:", value, "mV")
+		case 70: // 0x46
+			fmt.Println("Flash Min Vbatt Voltage:", value, "mV")
 		case 87: // 0x57
 			fmt.Println("Maximum recorded Charging Current:", calculateAmperes(value), "mA")
 		case 88: // 0x58
