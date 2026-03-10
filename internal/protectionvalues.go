@@ -55,7 +55,7 @@ func GetAndShowProtectionBMSValues() {
 		case 83:
 			fmt.Println("(PDOCP) Peak Discharge Over Current Protection:", value)
 		case 84:
-			fmt.Println("(PDSCT) Peak Discharge Short Circuit Protection:", value)
+			fmt.Println("(PDSCP) Peak Discharge Short Circuit Protection:", value)
 		case 85:
 			fmt.Println("(MOTP) MOSFET (Metal Oxide Semiconductor Field-Effect Transistors) Over Temperature Protection:", value)
 		case 86:
