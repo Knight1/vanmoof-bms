@@ -2,21 +2,23 @@ package main
 
 import (
 	"bms/v2/internal"
+	"bms/v2/internal/modbus"
+	"bms/v2/internal/serial"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"runtime"
 
-	"github.com/simonvetter/modbus"
+	mbclient "github.com/simonvetter/modbus"
 )
 
 func main() {
-	var client *modbus.ModbusClient
+	var client *mbclient.ModbusClient
 
 	flag.BoolVar(&internal.Debug, "debug", false, "Enable Debug Output")
 	serialPort := flag.String("serial-port", "/dev/serial0", "Serial device URL (e.g., /dev/serial0)")
-	action := flag.String("action", "show", "Action to perform (clearPF, live, show or showPorts)")
+	action := flag.String("action", "show", "Action to perform (clearPF, gpioOn, gpioOff, live, show or showPorts)")
 	//firmwareFile := flag.String("firmwareFile", "", "Firmware File to flash to BMS Chip.")
 	loop := flag.Bool("loop", false, "Enable loop for connecting to bms.")
 	overview := flag.Bool("overview", false, "Only show an overview of the essentials and exit.")
@@ -31,8 +33,15 @@ func main() {
 		internal.ConnectionRetries = 999999999
 	}
 
+	// Serial string commands (no Modbus needed)
 	if *action == "clearPF" {
-		internal.ClearPF(*serialPort)
+		serial.ClearPF(*serialPort)
+		os.Exit(0)
+	} else if *action == "gpioOn" {
+		serial.SetGPIOOn(*serialPort)
+		os.Exit(0)
+	} else if *action == "gpioOff" {
+		serial.SetGPIOOff(*serialPort)
 		os.Exit(0)
 	} else if *action == "showPorts" {
 		internal.ShowSerialPorts()
@@ -61,18 +70,18 @@ func main() {
 		log.Fatalf("Failed to connect to BMS: %v", err)
 	}
 
-	// Actions that need ModBus to be initialized
+	// Modbus register write commands
 	if *action == "debug" {
-		internal.TurnDebugOn(client)
+		modbus.TurnDebugOn(client)
 		os.Exit(0)
 	} else if *action == "debugoff" {
-		internal.TurnDebugOff(client)
+		modbus.TurnDebugOff(client)
 		os.Exit(0)
 	} else if *action == "discharge" {
-		internal.TurnDischargingOn(client)
+		modbus.TurnDischargingOn(client)
 		os.Exit(0)
 	} else if *action == "dischargeoff" {
-		internal.TurnDischargingOff(client)
+		modbus.TurnDischargingOff(client)
 		os.Exit(0)
 	}
 
