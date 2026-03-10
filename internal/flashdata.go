@@ -10,7 +10,7 @@ func GetAndShowFlashBMSData() {
 	//
 	for register, value := range Registers {
 		switch register {
-		case 48:
+		case 48: // 0x30
 			// TODO: Check what this is, should be a hex output
 
 			if value != 0 {
@@ -24,7 +24,7 @@ func GetAndShowFlashBMSData() {
 					}
 				}
 			}
-		case 49:
+		case 49: // 0x31
 			// TODO: Reports records that are too high (65535)
 			if value < 3731 && value > 2431 {
 				fmt.Println("Battery Temperature Sensor 1 Record:", calculateCelsius(value), "°C")
@@ -32,73 +32,73 @@ func GetAndShowFlashBMSData() {
 				fmt.Println("Battery Temperature Sensor 1 Record to high or to low!")
 			}
 
-		case 50:
+		case 50: // 0x32
 			if value < 3731 && value > 2431 {
 				fmt.Println("Battery Temperature Sensor 2 Record:", calculateCelsius(value), "°C")
 			} else {
 				fmt.Println("Battery Temperature Sensor 2 Record to high or to low!")
 			}
-		case 51:
+		case 51: // 0x33
 			if value > 0 {
 				fmt.Println("MOSFET Temperature Record:", calculateCelsius(value), "°C")
 			} else {
 				fmt.Println("MOSFET Temperature Record is set to 0!")
 			}
-		case 52:
+		case 52: // 0x34
 			if value < 4000 {
 				fmt.Println("Battery Voltage Record is below 4 Volts!")
 			} else {
 				fmt.Println("Battery Voltage Record:", value, "mV")
 			}
 
-		case 53:
+		case 53: // 0x35
 			fmt.Println("Current: ", calculateAmperes(value), "mA")
-		case 54:
+		case 54: // 0x36
 			if value < 10000 {
 				fmt.Println("Full Charge Capacity below 10000 mAh!")
 			}
 			// Does not make sense
 			fmt.Println("Full Charge Capacity:", value, "mAh")
-		case 55:
+		case 55: // 0x37
 			// Does not make sense
 			fmt.Println("Remaining Capacity:", value, "mAh")
-		case 56:
+		case 56: // 0x38
 			fmt.Println("RSOC: ", value, "%")
 			// TODO: shows 0 or something to high instead of Real State of Charge
-		case 57:
+		case 57: // 0x39
 			fmt.Println("Absolute SOC", value, "%")
 			// TODO: shows 0 or something to high instead of Absolute State of Charge
-		case 58:
+		case 58: // 0x3A
 			if value != 0 {
 				fmt.Println("Cycle Count:", value)
 			} else {
 				fmt.Println("No Cycle Count set in Flash. Check Passive Data Values!")
 			}
 
-			if len(Registers) > 19 && value != Registers[19] {
-				fmt.Println("Flash Data and Passive Cycle Count mismatch! Real Cycle Count:", Registers[19])
+			if len(Registers) > 25 && value != Registers[25] {
+				fmt.Println("Flash Data and Passive Cycle Count mismatch! Real Cycle Count:", Registers[25])
 			}
 
-		case 59:
+		case 59: // 0x3B
 			// register 59 to 68 are Cell Voltages from flash
 			// Values are either 0 or something odd
-		case 87:
+		case 87: // 0x57
 			fmt.Println("Maximum recorded Charging Current:", calculateAmperes(value), "mA")
-		case 88:
+		case 88: // 0x58
 			fmt.Println("Maximum recorded Discharging Current:", calculateAmperes(value), "mA")
-		case 89:
+		case 89: // 0x59
 			if value < 3731 && value > 2431 {
 				fmt.Println("Maximum recorded Cell Temperature:", calculateCelsius(value), "°C")
 			} else {
 				fmt.Println("Maximum recorded Cell Temperature is set to high!")
 			}
-		case 90:
+		case 90: // 0x5A
 			if value < 3731 && value > 2431 {
 				fmt.Println("Minimal recorded Cell Temperature:", calculateCelsius(value), "°C")
 			} else {
 				fmt.Println("Minimal recorded Cell Temperature is set to high!")
 			}
-		case 91:
+		case 91: // 0x5B
 			if value < 3731 && value > 2431 {
 				fmt.Println("Maximum recorded MOSFET Temperature:", calculateCelsius(value), "°C")
 			} else {

@@ -18,11 +18,11 @@ func ShowOverview() {
 			checkFaults(value)
 		case 3:
 			fmt.Println("Battery Temperature:", calculateCelsius(value), "°C")
-		case 10:
+		case 10: // 0x0A
 			fmt.Printf("Hardware Version: %04X\n", value)
-		case 11:
+		case 11: // 0x0B
 			fmt.Printf("Software Version: %04X\n", value)
-		case 19:
+		case 25: // 0x19
 			fmt.Println("Cycle Count:", value)
 		}
 	}
