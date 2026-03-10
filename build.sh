@@ -3,12 +3,6 @@
 set -e #exit on error
 #set -x
 
-GV=$(git tag || echo 'N/A')
-if [[ $GV =~ [^[:space:]]+ ]];
-then
-    GitTag=${BASH_REMATCH[0]}
-fi
-
 GH=$(git log -1 --pretty=format:%h || echo 'N/A')
 if [[ GH =~ 'fatal' ]];
 then
@@ -28,7 +22,7 @@ export GOARCH=arm64
 #export GOARM=8
 export VERSION=$(git rev-parse --short HEAD)
 BUILDTIME=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
-TRG_PKG='main'
+TRG_PKG='bms/v2/internal'
 
 FLAG="-X $TRG_PKG.BuildTime=$BUILDTIME"
 FLAG="$FLAG -X $TRG_PKG.CommitHash=$CommitHash"
