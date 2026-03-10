@@ -26,9 +26,9 @@ func GetAndShowPassiveBMSData() {
 			checkDischargingStatus(value)
 		case 9:
 			fmt.Printf("Test Mode: %04X\n", value)
-		case 10:
+		case 10: // 0x0A
 			fmt.Printf("Hardware Version:%04X\n", value)
-		case 11:
+		case 11: // 0x0B
 			fmt.Printf("Software Version: %04X\n", value)
 		case 12:
 			// Convert register data to ASCII string
@@ -67,50 +67,50 @@ func GetAndShowPassiveBMSData() {
 			// Manufacturer Date uses 2 Bytes so this is the second Part of the Manufacturing Date
 		case 15:
 			fmt.Println("Normal Capacity:", value, "mAh")
-		case 19:
+		case 25: // 0x19
 			fmt.Println("Cycle Count:", value)
-		case 26:
+		case 26: // 0x1A
 			checkMOSControl(value)
-		case 27:
+		case 27: // 0x1B
 			fmt.Println("Cell 1 Voltage:", value, "mV")
-		case 28:
+		case 28: // 0x1C
 			fmt.Println("Cell 2 Voltage:", value, "mV")
-		case 29:
+		case 29: // 0x1D
 			fmt.Println("Cell 3 Voltage:", value, "mV")
-		case 30:
+		case 30: // 0x1E
 			fmt.Println("Cell 4 Voltage:", value, "mV")
-		case 31:
+		case 31: // 0x1F
 			fmt.Println("Cell 5 Voltage:", value, "mV")
-		case 32:
+		case 32: // 0x20
 			fmt.Println("Cell 6 Voltage:", value, "mV")
-		case 33:
+		case 33: // 0x21
 			fmt.Println("Cell 7 Voltage:", value, "mV")
-		case 34:
+		case 34: // 0x22
 			fmt.Println("Cell 8 Voltage:", value, "mV")
-		case 35:
+		case 35: // 0x23
 			fmt.Println("Cell 9 Voltage:", value, "mV")
-		case 36:
+		case 36: // 0x24
 			fmt.Println("Cell 10 Voltage:", value, "mV")
-		case 37:
+		case 37: // 0x25
 			fmt.Println("Temperature Sensor 1:", calculateCelsius(value), "°C")
-		case 38:
+		case 38: // 0x26
 			fmt.Println("Temperature Sensor 2:", calculateCelsius(value), "°C")
-		case 39:
+		case 39: // 0x27
 			fmt.Println("Discharge MOSFET Temperature:", calculateCelsius(value), "°C")
-		case 40:
+		case 40: // 0x28
 			checkWarnings(value)
-		case 41:
+		case 41: // 0x29
 			cellVoltageHighest = value
 			fmt.Println("Maximum Battery Voltage:", value, "mV")
-		case 42:
+		case 42: // 0x2A
 			cellVoltageLowest = value
 			fmt.Println("Minimum Battery Voltage:", cellVoltageLowest, "mV")
 			if math.Abs(float64(int(cellVoltageHighest)-int(cellVoltageLowest))) > 20 {
 				fmt.Println("WARNING: Voltage Imbalance in Cells!")
 			}
-		case 43:
+		case 43: // 0x2B
 			fmt.Println("Cell Balance:", value)
-		case 44:
+		case 44: // 0x2C
 			fmt.Printf("Bootloader Version: %04X\n", value)
 		default:
 			continue

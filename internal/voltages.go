@@ -17,25 +17,25 @@ func GetAndShowPassiveVoltages() {
 		switch register {
 		case 4:
 			fmt.Println("Pack: ", milliVolts, "Volts")
-		case 27:
+		case 27: // 0x1B
 			fmt.Println("Cell 1:", milliVolts, "Volts")
-		case 28:
+		case 28: // 0x1C
 			fmt.Println("Cell 2:", milliVolts, "Volts")
-		case 29:
+		case 29: // 0x1D
 			fmt.Println("Cell 3:", milliVolts, "Volts")
-		case 30:
+		case 30: // 0x1E
 			fmt.Println("Cell 4:", milliVolts, "Volts")
-		case 31:
+		case 31: // 0x1F
 			fmt.Println("Cell 5:", milliVolts, "Volts")
-		case 32:
+		case 32: // 0x20
 			fmt.Println("Cell 6:", milliVolts, "Volts")
-		case 33:
+		case 33: // 0x21
 			fmt.Println("Cell 7:", milliVolts, "Volts")
-		case 34:
+		case 34: // 0x22
 			fmt.Println("Cell 8:", milliVolts, "Volts")
-		case 35:
+		case 35: // 0x23
 			fmt.Println("Cell 9:", milliVolts, "Volts")
-		case 36:
+		case 36: // 0x24
 			fmt.Println("Cell X:", milliVolts, "Volts")
 
 		default:
