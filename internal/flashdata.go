@@ -1,12 +1,14 @@
-package main
+package internal
 
-import "fmt"
+import (
+	"fmt"
+)
 
-func getAndShowFlashBMSData() {
+func GetAndShowFlashBMSData() {
 	fmt.Println("-- BEGIN BMS FLASH STATUS --")
 
 	//
-	for register, value := range regs {
+	for register, value := range Regs {
 		switch register {
 		case 48:
 			// TODO: Check what this is, should be a hex output
@@ -73,8 +75,8 @@ func getAndShowFlashBMSData() {
 				fmt.Println("No Cycle Count set in Flash. Check Passive Data Values!")
 			}
 
-			if value != regs[19] {
-				fmt.Println("Flash Data and Passive Cycle Count mismatch! Real Cycle Count:", regs[19])
+			if value != Regs[19] {
+				fmt.Println("Flash Data and Passive Cycle Count mismatch! Real Cycle Count:", Regs[19])
 			}
 
 		case 59:

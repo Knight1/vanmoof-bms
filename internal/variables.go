@@ -1,4 +1,4 @@
-package main
+package internal
 
 import "time"
 
@@ -24,11 +24,11 @@ const (
 )
 
 var (
-	connectionRetries uint64 = 5
-	regs              []uint16
+	ConnectionRetries uint64 = 5
+	Regs              []uint16
 	err               error
 	milliVolts        float64
-	debug             bool = false
+	Debug             bool = false
 
 	// Define holding registers
 	cellVoltageHighest = uint16(0)
@@ -50,3 +50,11 @@ var (
 var (
 	RegisterFault = 2
 )
+
+func calculateCelsius(value uint16) float32 {
+	return float32(value-2731) / 10
+}
+
+func calculateAmperes(value uint16) float64 {
+	return float64(value) / 10
+}

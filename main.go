@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bms/v2/internal"
 	"flag"
 	"fmt"
 	"log"
@@ -14,7 +15,7 @@ import (
 func main() {
 	var client *modbus.ModbusClient
 
-	flag.BoolVar(&debug, "debug", false, "Enable Debug Output")
+	flag.BoolVar(&internal.Debug, "debug", false, "Enable Debug Output")
 	serialPort := flag.String("serial-port", "/dev/serial0", "Serial device URL (e.g., /dev/serial0)")
 	action := flag.String("action", "show", "Action to perform (clearPF, live, show or showPorts)")
 	//firmwareFile := flag.String("firmwareFile", "", "Firmware File to flash to BMS Chip.")
@@ -23,61 +24,63 @@ func main() {
 	flag.Parse()
 
 	fmt.Println("Starting VanMoof / DynaPack BMS Toolkit")
-	fmt.Println("Go version:", runtime.Version(), "Version:", GoVersion, "BuildTime:", BuildTime, "CommitHash:", CommitHash, "GOOS:", GOOS, "GOARCH:", GOARCH)
-	fmt.Println("debug Mode:", debug, "serial Port:", *serialPort, "action", *action, "loop:", *loop)
+	fmt.Println("Go version:", runtime.Version(), "Version:", internal.GoVersion, "BuildTime:", internal.BuildTime, "CommitHash:", internal.CommitHash, "GOOS:", internal.GOOS, "GOARCH:", internal.GOARCH)
+	fmt.Println("debug Mode:", internal.Debug, "serial Port:", *serialPort, "action", *action, "loop:", *loop)
 
 	if *loop {
 		// Should be enough?
-		connectionRetries = 999999999
+		internal.ConnectionRetries = 999999999
 	}
 
 	if *action == "clearPF" {
-		clearPF(*serialPort)
+		internal.ClearPF(*serialPort)
 	} else if *action == "showPorts" {
-		showSerialPorts()
+		internal.ShowSerialPorts()
 	}
 
+	var err error
+
 	// Creates the Modbus connection with all relevant parameters and the port to use
-	client, err = createModbusClient(*serialPort)
+	client, err = internal.CreateModbusClient(*serialPort)
 	if err != nil {
 		log.Fatalf("Failed to create Modbus client. Maybe the Probe is disconnected? Check the Address of the Device! Error: %v", err)
 	}
 	defer client.Close()
 
 	// DEBUG
-	if debug {
+	if internal.Debug {
 		fmt.Println("Modbus client created")
 	}
 
 	// Loop for connecting to the bms. Loops until it reaches the end of connectionRetries
-	if _, err := connectToBMS(client, debug); err != nil {
+	if _, err := internal.ConnectToBMS(client, internal.Debug); err != nil {
 		log.Fatalf("Failed to connect to BMS: %v", err)
 	}
 
 	// Actions that need ModBus to be initialized
 	if strings.Contains("debug", *action) {
-		turnDebugOn(client)
+		internal.TurnDebugOn(client)
 		os.Exit(0)
 	} else if strings.Contains("debugoff", *action) {
-		turnDebugOff(client)
+		internal.TurnDebugOff(client)
 		os.Exit(0)
 	} else if strings.Contains("discharge", *action) {
-		turnDischargingOn(client)
+		internal.TurnDischargingOn(client)
 		os.Exit(0)
 	} else if strings.Contains("dischargeoff", *action) {
-		turnDischargingOff(client)
+		internal.TurnDischargingOff(client)
 		os.Exit(0)
 	}
 
-	if regs, err = readRegisters(client, 0, 95); err != nil {
+	if internal.Regs, err = internal.ReadRegisters(client, 0, 95); err != nil {
 		log.Fatalf("Failed to read registers: %v", err)
 	}
 
 	// Debug Output
-	if debug {
+	if internal.Debug {
 		fmt.Println("-- BEGIN DEBUG --")
 		fmt.Println("BMS ModBus Addresses 0 to 94")
-		for register, reg := range regs {
+		for register, reg := range internal.Regs {
 			fmt.Println("Register:", register, "Value:", reg)
 		}
 
@@ -85,30 +88,22 @@ func main() {
 	}
 
 	if *action == "live" {
-		liveData(client, debug)
+		internal.LiveData(client, internal.Debug)
 	}
 
 	if *overview {
-		showOverview()
+		internal.ShowOverview()
 		os.Exit(0)
 	}
 
 	// defere here to make sure the client is closed after the live output is not used
 	defer client.Close()
 
-	getAndShowPassiveBMSData()
+	internal.GetAndShowPassiveBMSData()
 
-	getAndShowFlashBMSData()
+	internal.GetAndShowFlashBMSData()
 
-	getAndShowProtectionBMSValues()
+	internal.GetAndShowProtectionBMSValues()
 
-	getAndShowPassiveVoltages()
-}
-
-func calculateCelsius(value uint16) float32 {
-	return float32(value-2731) / 10
-}
-
-func calculateAmperes(value uint16) float64 {
-	return float64(value) / 10
+	internal.GetAndShowPassiveVoltages()
 }

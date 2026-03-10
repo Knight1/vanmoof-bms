@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"fmt"
@@ -6,13 +6,13 @@ import (
 )
 
 // passive means live
-func getAndShowPassiveVoltages() {
+func GetAndShowPassiveVoltages() {
 	fmt.Println("-- BEGIN LIVE VOLTAGES --")
 
 	cellImbalanced := false
 
 	// Voltage Cell Pack Monitoring
-	for register, value := range regs {
+	for register, value := range Regs {
 		milliVolts = float64(value) / 1000
 		switch register {
 		case 4:
@@ -63,7 +63,7 @@ func getAndShowPassiveVoltages() {
 			// Ignore Pack Voltage and the first Cell. Because there is nothing to compare it to.
 			if register != 4 && register != 27 {
 				cellImbalanced = true
-				if debug {
+				if Debug {
 					fmt.Println("DEBUG: Value ", value, "differs from previous value", cellVoltagePrevious, "by more than", diff)
 				}
 

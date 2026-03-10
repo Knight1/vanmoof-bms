@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func showSerialPorts() {
+func ShowSerialPorts() {
 	ports, err := enumerator.GetDetailedPortsList()
 	if err != nil {
 		log.Fatal(err)

@@ -1,10 +1,10 @@
-package main
+package internal
 
 import (
 	"fmt"
 )
 
-func showOverview() {
+func ShowOverview() {
 
 	fmt.Println("-- BEGIN BMS OVERVIEW --")
 
@@ -12,7 +12,7 @@ func showOverview() {
 	// Warnings
 	// ESN
 
-	for register, value := range regs {
+	for register, value := range Regs {
 		switch register {
 		case RegisterFault:
 			checkFaults(value)
@@ -29,5 +29,5 @@ func showOverview() {
 
 	fmt.Println("-- END BMS OVERVIEW --")
 
-	getAndShowPassiveVoltages()
+	GetAndShowPassiveVoltages()
 }

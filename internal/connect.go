@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"fmt"
@@ -8,9 +8,9 @@ import (
 	"github.com/simonvetter/modbus"
 )
 
-func connectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, error error) {
+func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, error error) {
 	// Read all BMS ModBus Addresses
-	for attempt := 0; attempt < int(connectionRetries); attempt++ {
+	for attempt := 0; attempt < int(ConnectionRetries); attempt++ {
 		if debug {
 			fmt.Println("Trying to connect to BMS via ModBus. Attempt:", attempt+1)
 		}
@@ -50,7 +50,7 @@ func connectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, erro
 	}
 
 	if err != nil || client == nil {
-		fmt.Println("Retry Counter exceeded. Giving Up. Retry counter:", connectionRetries)
+		fmt.Println("Retry Counter exceeded. Giving Up. Retry counter:", ConnectionRetries)
 		fmt.Println("Failed to connect to BMS. Check if VCC on SWD Interface has 2.5Volts!")
 		fmt.Println("Verify that RX/TX is connected correctly via JTAG BMS Version Output!")
 		fmt.Println("Also make sure TEST is connected to GND. Otherwise the BMS will sleep and not respond!")
@@ -61,11 +61,11 @@ func connectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, erro
 	return fault, nil
 }
 
-func readRegisters(client *modbus.ModbusClient, startAddress, quantity uint16) ([]uint16, error) {
-	regs, err = client.ReadRegisters(startAddress, quantity, modbus.HOLDING_REGISTER)
+func ReadRegisters(client *modbus.ModbusClient, startAddress, quantity uint16) ([]uint16, error) {
+	Regs, err = client.ReadRegisters(startAddress, quantity, modbus.HOLDING_REGISTER)
 	if err != nil {
 		fmt.Println("Failed to read registers. Error:", err)
 	}
 
-	return regs, err
+	return Regs, err
 }

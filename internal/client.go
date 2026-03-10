@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/simonvetter/modbus"
 )
 
-func createModbusClient(device string) (*modbus.ModbusClient, error) {
+func CreateModbusClient(device string) (*modbus.ModbusClient, error) {
 	// for an RTU (serial) device/bus
 	return modbus.NewClient(&modbus.ClientConfiguration{
 		URL:      fmt.Sprintf("rtu://%s", device),

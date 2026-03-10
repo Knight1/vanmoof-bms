@@ -1,16 +1,16 @@
-package main
+package internal
 
 import (
 	"fmt"
 )
 
-func getAndShowProtectionBMSValues() {
+func GetAndShowProtectionBMSValues() {
 
 	fmt.Println("-- BEGIN TRIGGER AND PROTECTION VALUES --")
 	fmt.Println("Trigger Values are best guess. DynaPack does not specify them.")
 
 	// Checking Proteection Statusses
-	for register, value := range regs {
+	for register, value := range Regs {
 		switch register {
 		case 45:
 			// GUESS
