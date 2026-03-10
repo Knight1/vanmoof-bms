@@ -53,5 +53,5 @@ func calculateCelsius(value uint16) float32 {
 }
 
 func calculateAmperes(value uint16) float64 {
-	return float64(value) / 10
+	return float64(value) * 10
 }
