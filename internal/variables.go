@@ -6,7 +6,6 @@ import "time"
 var (
 	BuildTime  string
 	CommitHash string
-	GitTag     string
 	GOOS       string
 	GOARCH     string
 	GoVersion  string
@@ -26,7 +25,6 @@ const (
 var (
 	ConnectionRetries uint64 = 5
 	Registers         []uint16
-	err               error
 	milliVolts        float64
 	Debug             bool = false
 
@@ -39,7 +37,6 @@ var (
 	bmsUndervoltageCellProtection2 uint16 = 0
 	bmsUndervoltageCellShutdown    uint16 = 0
 	bmsOvervoltageCellProtection1  uint16 = 0
-	bmsStatus                      bool   = false
 
 	// Define Thresholds (own!)
 	cellVoltageImbalance uint16 = 5
