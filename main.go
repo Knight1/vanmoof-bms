@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"strings"
 
 	"github.com/simonvetter/modbus"
 )
@@ -58,16 +57,16 @@ func main() {
 	}
 
 	// Actions that need ModBus to be initialized
-	if strings.Contains("debug", *action) {
+	if *action == "debug" {
 		internal.TurnDebugOn(client)
 		os.Exit(0)
-	} else if strings.Contains("debugoff", *action) {
+	} else if *action == "debugoff" {
 		internal.TurnDebugOff(client)
 		os.Exit(0)
-	} else if strings.Contains("discharge", *action) {
+	} else if *action == "discharge" {
 		internal.TurnDischargingOn(client)
 		os.Exit(0)
-	} else if strings.Contains("dischargeoff", *action) {
+	} else if *action == "dischargeoff" {
 		internal.TurnDischargingOff(client)
 		os.Exit(0)
 	}
@@ -95,9 +94,6 @@ func main() {
 		internal.ShowOverview()
 		os.Exit(0)
 	}
-
-	// defere here to make sure the client is closed after the live output is not used
-	defer client.Close()
 
 	internal.GetAndShowPassiveBMSData()
 
