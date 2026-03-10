@@ -30,42 +30,33 @@ func GetAndShowPassiveBMSData() {
 			fmt.Printf("Hardware Version:%04X\n", value)
 		case 11: // 0x0B
 			fmt.Printf("Software Version: %04X\n", value)
-		case 12:
-			// Convert register data to ASCII string
+		case 12: // 0x0C
+			// ESN: 14 bytes (7 registers 0x0C-0x12) as ASCII
+			if len(Registers) < 19 {
+				fmt.Println("ESN: insufficient register data")
+				continue
+			}
 
-			// Read ESN (14 characters -> 7 registers)
-			esnRegisters := uint16(7) // 7 registers for 14 characters. Automatically includes Capacity and manufacturing Date
-
-			// Convert register data to ASCII string
-			bytes := make([]byte, 0, esnRegisters*2)
-			// Maybe 12 to 17. 18 seems blank.
+			bytes := make([]byte, 0, 14)
 			for _, reg := range Registers[12:19] {
-				bytes = append(bytes, byte(reg>>8), byte(reg&0xFF)) // High and low bytes
+				bytes = append(bytes, byte(reg>>8), byte(reg&0xFF))
+			}
+			fmt.Printf("ESN: %s\n", string(bytes))
+
+		case 19: // 0x13
+			// Manufacture Date: 4 bytes (2 registers 0x13-0x14) as DATE
+			if len(Registers) < 21 {
+				fmt.Println("Manufacture Date: insufficient register data")
+				continue
 			}
 
-			esn := string(bytes)
-			fmt.Printf("ESN: %s\n", esn)
-
-		case 13:
-			// Slice the range for manufacture date (registers 18 and 19)
-			dateRegisters := Registers[14:16]
-
-			// Allocate space for bytes (4 characters = 2 registers * 2 bytes per register)
-			dateBytes := make([]byte, 0, len(dateRegisters)*2)
-
-			// Convert registers to bytes
-			for _, reg := range dateRegisters {
-				dateBytes = append(dateBytes, byte(reg>>8), byte(reg&0xFF)) // High byte, Low byte
+			dateBytes := make([]byte, 0, 4)
+			for _, reg := range Registers[19:21] {
+				dateBytes = append(dateBytes, byte(reg>>8), byte(reg&0xFF))
 			}
+			fmt.Printf("Manufacture Date: %s\n", string(dateBytes))
 
-			// Convert byte slice to ASCII string
-			manufactureDate := string(dateBytes)
-
-			// Print the manufacture date in YYWW format
-			fmt.Printf("Manufacture Date: %s\n", manufactureDate)
-		case 14:
-			// Manufacturer Date uses 2 Bytes so this is the second Part of the Manufacturing Date
-		case 15:
+		case 21: // 0x15
 			fmt.Println("Normal Capacity:", value, "mAh")
 		case 25: // 0x19
 			fmt.Println("Cycle Count:", value)
