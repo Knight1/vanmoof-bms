@@ -10,7 +10,7 @@ func GetAndShowProtectionBMSValues() {
 	fmt.Println("Trigger Values are best guess. DynaPack does not specify them.")
 
 	// Checking Proteection Statusses
-	for register, value := range Regs {
+	for register, value := range Registers {
 		switch register {
 		case 45:
 			// GUESS

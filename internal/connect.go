@@ -62,10 +62,10 @@ func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, erro
 }
 
 func ReadRegisters(client *modbus.ModbusClient, startAddress, quantity uint16) ([]uint16, error) {
-	Regs, err = client.ReadRegisters(startAddress, quantity, modbus.HOLDING_REGISTER)
+	Registers, err = client.ReadRegisters(startAddress, quantity, modbus.HOLDING_REGISTER)
 	if err != nil {
 		fmt.Println("Failed to read registers. Error:", err)
 	}
 
-	return Regs, err
+	return Registers, err
 }

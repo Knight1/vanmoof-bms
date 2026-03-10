@@ -8,7 +8,7 @@ import (
 func GetAndShowPassiveBMSData() {
 	fmt.Println("-- BEGIN BMS PASSIVE STATUS --")
 
-	for register, value := range Regs {
+	for register, value := range Registers {
 		switch register {
 		case RegisterFault:
 			checkFaults(value)
@@ -39,7 +39,7 @@ func GetAndShowPassiveBMSData() {
 			// Convert register data to ASCII string
 			bytes := make([]byte, 0, esnRegisters*2)
 			// Maybe 12 to 17. 18 seems blank.
-			for _, reg := range Regs[12:19] {
+			for _, reg := range Registers[12:19] {
 				bytes = append(bytes, byte(reg>>8), byte(reg&0xFF)) // High and low bytes
 			}
 
@@ -48,13 +48,13 @@ func GetAndShowPassiveBMSData() {
 
 		case 13:
 			// Slice the range for manufacture date (registers 18 and 19)
-			dateRegs := Regs[14:16]
+			dateRegisters := Registers[14:16]
 
 			// Allocate space for bytes (4 characters = 2 registers * 2 bytes per register)
-			dateBytes := make([]byte, 0, len(dateRegs)*2)
+			dateBytes := make([]byte, 0, len(dateRegisters)*2)
 
 			// Convert registers to bytes
-			for _, reg := range dateRegs {
+			for _, reg := range dateRegisters {
 				dateBytes = append(dateBytes, byte(reg>>8), byte(reg&0xFF)) // High byte, Low byte
 			}
 

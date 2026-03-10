@@ -25,7 +25,7 @@ const (
 
 var (
 	ConnectionRetries uint64 = 5
-	Regs              []uint16
+	Registers         []uint16
 	err               error
 	milliVolts        float64
 	Debug             bool = false

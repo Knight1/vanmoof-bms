@@ -12,7 +12,7 @@ func GetAndShowPassiveVoltages() {
 	cellImbalanced := false
 
 	// Voltage Cell Pack Monitoring
-	for register, value := range Regs {
+	for register, value := range Registers {
 		milliVolts = float64(value) / 1000
 		switch register {
 		case 4:

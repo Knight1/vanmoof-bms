@@ -12,7 +12,7 @@ func ShowOverview() {
 	// Warnings
 	// ESN
 
-	for register, value := range Regs {
+	for register, value := range Registers {
 		switch register {
 		case RegisterFault:
 			checkFaults(value)

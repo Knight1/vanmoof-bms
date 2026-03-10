@@ -8,7 +8,7 @@ func GetAndShowFlashBMSData() {
 	fmt.Println("-- BEGIN BMS FLASH STATUS --")
 
 	//
-	for register, value := range Regs {
+	for register, value := range Registers {
 		switch register {
 		case 48:
 			// TODO: Check what this is, should be a hex output
@@ -75,8 +75,8 @@ func GetAndShowFlashBMSData() {
 				fmt.Println("No Cycle Count set in Flash. Check Passive Data Values!")
 			}
 
-			if value != Regs[19] {
-				fmt.Println("Flash Data and Passive Cycle Count mismatch! Real Cycle Count:", Regs[19])
+			if value != Registers[19] {
+				fmt.Println("Flash Data and Passive Cycle Count mismatch! Real Cycle Count:", Registers[19])
 			}
 
 		case 59:

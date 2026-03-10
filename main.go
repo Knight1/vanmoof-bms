@@ -72,7 +72,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	if internal.Regs, err = internal.ReadRegisters(client, 0, 95); err != nil {
+	if internal.Registers, err = internal.ReadRegisters(client, 0, 95); err != nil {
 		log.Fatalf("Failed to read registers: %v", err)
 	}
 
@@ -80,7 +80,7 @@ func main() {
 	if internal.Debug {
 		fmt.Println("-- BEGIN DEBUG --")
 		fmt.Println("BMS ModBus Addresses 0 to 94")
-		for register, reg := range internal.Regs {
+		for register, reg := range internal.Registers {
 			fmt.Println("Register:", register, "Value:", reg)
 		}
 
