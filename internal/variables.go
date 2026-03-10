@@ -49,9 +49,9 @@ var (
 )
 
 func calculateCelsius(value uint16) float32 {
-	return float32(value-2731) / 10
+	return float32(int16(value)-2731) / 10
 }
 
 func calculateAmperes(value uint16) float64 {
-	return float64(value) * 10
+	return float64(int16(value)) * 10
 }
