@@ -37,7 +37,12 @@ func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, err 
 			fmt.Println("Reading Registers... Please wait!")
 		}
 		// VanMoof / DynaPack BMS uses slave-id 170
-		client.SetUnitId(DynaPackVanMoofSlaveID)
+		if err := client.SetUnitId(DynaPackVanMoofSlaveID); err != nil {
+			if debug {
+				fmt.Println("Failed to set unit ID. Error:", err)
+			}
+			continue
+		}
 
 		// Getting Fault Status to check if BMS is answering
 		fault, connectErr = client.ReadRegisters(0x0002, 1, modbus.HOLDING_REGISTER)

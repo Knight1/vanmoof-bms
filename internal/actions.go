@@ -28,6 +28,11 @@ func ClearPF(serialPort string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer func() {
+		if port != nil {
+			_ = port.Close()
+		}
+	}()
 
 	fmt.Println("Serial port opened")
 
@@ -42,7 +47,10 @@ func ClearPF(serialPort string) {
 		fmt.Println("Sent PF=0 to serial port")
 
 		// Close the serial port before switching to Modbus
-		port.Close()
+		if err = port.Close(); err != nil {
+			log.Fatalf("Failed to close serial port: %v", err)
+		}
+		port = nil
 
 		// Creates the Modbus connection with all relevant parameters and the port to use
 		client, err := CreateModbusClient(serialPort)
@@ -56,18 +64,19 @@ func ClearPF(serialPort string) {
 
 		// Loop for connecting to the bms. Loops until it reaches the end of connectionRetries
 		if _, err := ConnectToBMS(client, Debug); err != nil {
-			client.Close()
+			_ = client.Close()
 			log.Fatalf("Failed to connect to BMS: %v", err)
 		}
 
-		client.Close()
+		if err := client.Close(); err != nil {
+			log.Fatalf("Failed to close Modbus client: %v", err)
+		}
 
 		// Re-open serial port for next attempt
 		if attempt < int(ConnectionRetries)-1 {
-			var reopenErr error
-			port, reopenErr = serial.Open(serialPort, mode)
-			if reopenErr != nil {
-				log.Fatal(reopenErr)
+			port, err = serial.Open(serialPort, mode)
+			if err != nil {
+				log.Fatal(err)
 			}
 		}
 	}

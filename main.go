@@ -45,7 +45,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create Modbus client. Maybe the Probe is disconnected? Check the Address of the Device! Error: %v", err)
 	}
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			log.Printf("Failed to close Modbus client: %v", err)
+		}
+	}()
 
 	// DEBUG
 	if internal.Debug {
