@@ -14,7 +14,7 @@ func GetAndShowFlashBMSData() {
 			// TODO: Check what this is, should be a hex output
 
 			if value != 0 {
-				fmt.Printf("Register 0x%X ('Fault Status'): 0x%04X\n", 0x2, value)
+				fmt.Printf("Register 0x%X ('Flash Fault Status'): 0x%04X\n", 0x30, value)
 
 				// Decode flags (bitwise operations)
 				flags := []string{"DOTP", "DUTP", "COTP", "CUTP", "DOCP1", "DOCP2", "COCP1", "COCP2", "OVP1", "OVP2", "UVP1", "UVP2", "PDOCP", "PDSCP", "MOTP", "SCP"}
