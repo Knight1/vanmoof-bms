@@ -75,7 +75,7 @@ func GetAndShowFlashBMSData() {
 				fmt.Println("No Cycle Count set in Flash. Check Passive Data Values!")
 			}
 
-			if value != Registers[19] {
+			if len(Registers) > 19 && value != Registers[19] {
 				fmt.Println("Flash Data and Passive Cycle Count mismatch! Real Cycle Count:", Registers[19])
 			}
 
