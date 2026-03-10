@@ -33,6 +33,7 @@ func main() {
 
 	if *action == "clearPF" {
 		internal.ClearPF(*serialPort)
+		os.Exit(0)
 	} else if *action == "showPorts" {
 		internal.ShowSerialPorts()
 	}
