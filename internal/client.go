@@ -14,7 +14,7 @@ func CreateModbusClient(device string) (*modbus.ModbusClient, error) {
 		Speed:    9600,
 		DataBits: 8,
 		Parity:   modbus.PARITY_NONE,
-		StopBits: 2,
+		StopBits: 1,
 		Timeout:  3000 * time.Millisecond,
 	})
 }
