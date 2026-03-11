@@ -32,7 +32,14 @@ func main() {
 
 	fmt.Println("Starting VanMoof / DynaPack BMS Toolkit")
 	fmt.Println("Go version:", runtime.Version(), "Version:", internal.GoVersion, "BuildTime:", internal.BuildTime, "CommitHash:", internal.CommitHash, "GOOS:", internal.GOOS, "GOARCH:", internal.GOARCH)
-	fmt.Println("debug Mode:", internal.Debug, "serial Port:", *serialPort, "action", *action, "loop:", *loop)
+
+	if internal.Debug {
+		fmt.Println("-- CLI Arguments --")
+		flag.VisitAll(func(f *flag.Flag) {
+			fmt.Printf("  --%s=%s (default: %s)\n", f.Name, f.Value.String(), f.DefValue)
+		})
+		fmt.Println("-------------------")
+	}
 
 	if *loop {
 		internal.Loop = true
