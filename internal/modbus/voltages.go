@@ -81,7 +81,7 @@ func GetAndShowPassiveVoltages() {
 		}
 	}
 
-	if cellImbalanced == true {
+	if cellImbalanced {
 		fmt.Println("WARNING: Voltage Imbalance in Cells!")
 	}
 
