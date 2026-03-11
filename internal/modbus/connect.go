@@ -59,10 +59,12 @@ func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, err 
 
 	if connectErr != nil || client == nil {
 		fmt.Println("Retry Counter exceeded. Giving Up. Retry counter:", internal.ConnectionRetries)
-		fmt.Println("Failed to connect to BMS. Check if VCC on SWD Interface has 2.5Volts!")
-		fmt.Println("Verify that RX/TX is connected correctly via JTAG BMS Version Output!")
-		fmt.Println("Also make sure TEST is connected to GND. Otherwise the BMS will sleep and not respond!")
-		fmt.Println("Thanks for keeping the World a better place!")
+		fmt.Println("Failed to connect to BMS. Check if")
+		fmt.Println("-> VCC on SWD Interface has 2.5Volts!")
+		fmt.Println("-> RX/TX is connected correctly via JTAG BMS Version Output in minicom/putty!")
+		fmt.Println("-> TEST is connected to GND. Otherwise the BMS will sleep and not respond!")
+		fmt.Println("-> IF the Battery has no errors, check DSG Voltage.")
+		fmt.Println("Thanks for keeping the World a better place! ❤️")
 		os.Exit(1)
 	}
 
