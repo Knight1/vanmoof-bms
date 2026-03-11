@@ -1,8 +1,7 @@
 # VanMooof BMS
 
 This tool is **ONLY** for the following VanMoof bikes
-- Electrified S3
-- Electrified X3
+- Electrified S3 & X3 (VM01-{202, 203, 212, 213}-{EU, JP, UK, US}, VM01-201-2G EU, VM01-200-2G EU)
 - Electrified S4
 
 with the Battery Model Name / Product Code: VM13-147  
