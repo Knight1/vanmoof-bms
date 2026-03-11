@@ -88,6 +88,18 @@ func ResetESNModbus(client *modbus.ModbusClient) {
 	}
 }
 
+// ResetMCU resets the BMS microcontroller by writing register 0x80=0.
+func ResetMCU(client *modbus.ModbusClient) {
+	if internal.Debug {
+		fmt.Println("[DEBUG] ResetMCU: writing register 0x80=0")
+	}
+	if err := client.WriteRegister(0x80, 0); err != nil {
+		fmt.Println("Error resetting MCU. Error:", err)
+	} else {
+		fmt.Println("MCU reset sent!")
+	}
+}
+
 // ShipMode puts the BMS into ship mode by writing register 0x01=0.
 func ShipMode(client *modbus.ModbusClient) {
 	if internal.Debug {

@@ -140,6 +140,9 @@ func main() {
 	} else if *action == "resetESNModbus" {
 		modbus.ResetESNModbus(client)
 		os.Exit(0)
+	} else if *action == "resetMCU" {
+		modbus.ResetMCU(client)
+		os.Exit(0)
 	} else if *action == "shipMode" {
 		modbus.ShipMode(client)
 		os.Exit(0)
