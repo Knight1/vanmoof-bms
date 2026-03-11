@@ -22,6 +22,8 @@ func main() {
 	action := flag.String("action", "show", "Action to perform (calibrateCHG, calibrateDSG, chargeOn, chargeOff, clearLog, clearPF, convertLog, detectOn, detectOff, discharge, dischargeoff, exportLog, gpioOn, gpioOff, keyInOn, keyInOff, live, resetBMS, resetESN, ship, shipMode, show, showPorts or writeESN)")
 	//firmwareFile := flag.String("firmwareFile", "", "Firmware File to flash to BMS Chip.")
 	logFile := flag.String("log-file", "", "Output CSV file for exportLog (default: bms_log_<timestamp>.csv)")
+	logInput := flag.String("log-input", "", "Input text file for convertLog action")
+	calibrateCurrent := flag.Int("calibrate-current", 0, "Current in mA for calibrateDSG / calibrateCHG actions")
 	esn := flag.String("esn", "", "Electronic Serial Number (14 characters)")
 	esnDate := flag.String("esn-date", "", "Manufacture date as YYYYMMDD")
 	loop := flag.Bool("loop", false, "Enable loop for connecting to bms.")
@@ -35,6 +37,12 @@ func main() {
 	if *loop {
 		// Should be enough?
 		internal.ConnectionRetries = 999999999
+	}
+
+	// File utility commands (no serial or Modbus needed)
+	if *action == "convertLog" {
+		convert.CustomerLog(*logInput)
+		os.Exit(0)
 	}
 
 	// Serial string commands (no Modbus needed)
