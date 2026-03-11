@@ -153,7 +153,7 @@ func main() {
 		modbus.ExportReadLog(client, *logFile)
 		os.Exit(0)
 	} else if *action == "updateFirmware" {
-		modbus.UpdateFirmware(client, *firmwareFile, *serialPort)
+		modbus.UpdateFirmware(client, *firmwareFile)
 		os.Exit(0)
 	}
 

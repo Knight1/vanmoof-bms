@@ -33,7 +33,7 @@ const (
 //  3. Verify CRC via register 0x81
 //  4. Reset MCU via register 0x80=0
 //  5. Wait for BMS to reboot and confirm via register 0x00
-func UpdateFirmware(client *modbus.ModbusClient, filename string, serialPort string) {
+func UpdateFirmware(client *modbus.ModbusClient, filename string) {
 	if filename == "" {
 		log.Fatal("updateFirmware requires --firmware-file <path to .bin file>")
 	}
@@ -146,13 +146,13 @@ func UpdateFirmware(client *modbus.ModbusClient, filename string, serialPort str
 
 	// Wait for BMS to reboot and confirm
 	fmt.Println("Waiting for BMS to reboot...")
-	waitForBMSReboot(client, serialPort)
+	waitForBMSReboot(client)
 }
 
 // waitForBMSReboot polls the BMS after a firmware update reset.
 // It tries to read register 0x00 and expects value [1, 0] (0x0100) to confirm the BMS is running.
 // Also listens on the serial port for "DP Mode" or "I am VM-BATT AP" messages.
-func waitForBMSReboot(client *modbus.ModbusClient, serialPort string) {
+func waitForBMSReboot(client *modbus.ModbusClient) {
 	timeout := time.After(180 * time.Second)
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
