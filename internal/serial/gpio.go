@@ -1,6 +1,7 @@
 package serial
 
 import (
+	"bms/v2/internal"
 	"fmt"
 	"log"
 	"strings"
@@ -45,11 +46,19 @@ func SetKeyInOff(serialPort string) {
 // sendGPIOCommand sends a command over serial and reads the response.
 // If expectedResponse is provided, the response is checked against it.
 func sendGPIOCommand(serialPort string, command string, expectedResponse ...string) {
+	if internal.Debug {
+		fmt.Printf("[DEBUG] sendGPIOCommand: port=%s command=%q expectedResponse=%v\n", serialPort, command, expectedResponse)
+	}
+
 	mode := &serial.Mode{
 		BaudRate: 9600,
 		Parity:   serial.NoParity,
 		DataBits: 8,
 		StopBits: serial.OneStopBit,
+	}
+
+	if internal.Debug {
+		fmt.Printf("[DEBUG] sendGPIOCommand: opening serial port with baud=9600 data=8 parity=none stop=1\n")
 	}
 
 	fmt.Println("Opening serial port", serialPort)
@@ -64,6 +73,10 @@ func sendGPIOCommand(serialPort string, command string, expectedResponse ...stri
 		}
 	}()
 
+	if internal.Debug {
+		fmt.Printf("[DEBUG] sendGPIOCommand: writing %d bytes: %q\n", len(command), command)
+	}
+
 	_, err = port.Write([]byte(command))
 	if err != nil {
 		log.Fatal(err)
@@ -76,6 +89,10 @@ func sendGPIOCommand(serialPort string, command string, expectedResponse ...stri
 		log.Fatal(err)
 	}
 
+	if internal.Debug {
+		fmt.Println("[DEBUG] sendGPIOCommand: reading response with 2s timeout")
+	}
+
 	buf := make([]byte, 256)
 	var response []byte
 	for {
@@ -84,17 +101,27 @@ func sendGPIOCommand(serialPort string, command string, expectedResponse ...stri
 			break
 		}
 		response = append(response, buf[:n]...)
+		if internal.Debug {
+			fmt.Printf("[DEBUG] sendGPIOCommand: read %d bytes (total: %d)\n", n, len(response))
+		}
 	}
 
 	if len(response) > 0 {
 		respStr := strings.TrimSpace(string(response))
 		fmt.Printf("Response: %s\n", respStr)
 
+		if internal.Debug {
+			fmt.Printf("[DEBUG] sendGPIOCommand: raw response bytes: %v\n", response)
+		}
+
 		if len(expectedResponse) > 0 {
 			found := false
 			for _, expected := range expectedResponse {
 				if strings.Contains(respStr, expected) {
 					found = true
+					if internal.Debug {
+						fmt.Printf("[DEBUG] sendGPIOCommand: matched expected response %q\n", expected)
+					}
 					break
 				}
 			}

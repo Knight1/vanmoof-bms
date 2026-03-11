@@ -1,6 +1,7 @@
 package modbus
 
 import (
+	"bms/v2/internal"
 	"fmt"
 	"log"
 	"strconv"
@@ -13,6 +14,10 @@ import (
 // Date: 4 bytes (2 registers 0x13-0x14) as [0x00, year, month, day].
 // date must be in YYYYMMDD format.
 func WriteESNAndDate(client *modbus.ModbusClient, esn string, date string) {
+	if internal.Debug {
+		fmt.Printf("[DEBUG] WriteESNAndDate: esn=%q date=%q\n", esn, date)
+	}
+
 	if esn == "" || date == "" {
 		log.Fatal("writeESN requires --esn (14 chars) and --esn-date (YYYYMMDD)")
 	}
@@ -50,6 +55,13 @@ func WriteESNAndDate(client *modbus.ModbusClient, esn string, date string) {
 	regs := make([]uint16, 9)
 	for i := 0; i < 9; i++ {
 		regs[i] = uint16(data[i*2])<<8 | uint16(data[i*2+1])
+	}
+
+	if internal.Debug {
+		fmt.Println("[DEBUG] WriteESNAndDate: writing 9 registers starting at 0x0C")
+		for i, r := range regs {
+			fmt.Printf("[DEBUG] WriteESNAndDate: register 0x%02X=0x%04X\n", 0x0C+i, r)
+		}
 	}
 
 	if err := client.WriteRegisters(0x0C, regs); err != nil {

@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"bms/v2/internal"
 	"encoding/csv"
 	"fmt"
 	"log"
@@ -18,6 +19,10 @@ import (
 // current_abs(mA), full_charge(mAh), remaining_charge(mAh), temp1(C), temp2(C),
 // dsg_mos_temp(C), warn(register), min_bat_v(mV), max_bat_v(mV)
 func CustomerLog(inputFile string) {
+	if internal.Debug {
+		fmt.Printf("[DEBUG] CustomerLog: inputFile=%q\n", inputFile)
+	}
+
 	if inputFile == "" {
 		log.Fatal("Input file is required for convertLog action")
 	}
@@ -27,9 +32,17 @@ func CustomerLog(inputFile string) {
 		log.Fatalf("Failed to read input file: %v", err)
 	}
 
+	if internal.Debug {
+		fmt.Printf("[DEBUG] CustomerLog: read %d bytes from input file\n", len(data))
+	}
+
 	dir := filepath.Dir(inputFile)
 	base := strings.TrimSuffix(filepath.Base(inputFile), filepath.Ext(inputFile))
 	outputFile := filepath.Join(dir, base+".csv")
+
+	if internal.Debug {
+		fmt.Printf("[DEBUG] CustomerLog: output file=%s\n", outputFile)
+	}
 
 	header := []string{
 		"ts(ms)", "fault(register)", "voltage(mV)", "rsoc(%)",
@@ -44,30 +57,39 @@ func CustomerLog(inputFile string) {
 	var keys []int
 
 	lines := strings.Split(string(data), "\n")
+	parsedLines := 0
+	skippedLines := 0
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if !strings.Contains(line, "#") {
+			skippedLines++
 			continue
 		}
 
 		parts := strings.SplitN(line, "#", 2)
 		if len(parts) < 2 {
+			skippedLines++
 			continue
 		}
 
 		fields := strings.Split(parts[1], ";")
 		if len(fields) < 2 {
+			skippedLines++
 			continue
 		}
 
 		ts, err := strconv.Atoi(fields[0])
 		if err != nil {
+			skippedLines++
 			continue
 		}
 		recordType, err := strconv.Atoi(fields[1])
 		if err != nil {
+			skippedLines++
 			continue
 		}
+
+		parsedLines++
 
 		// Group by second (round down to nearest 1000ms)
 		key := (ts / 1000) * 1000
@@ -108,6 +130,10 @@ func CustomerLog(inputFile string) {
 			row[12] = fields[6]                           // min_bat_v
 			row[13] = fields[7]                           // max_bat_v
 		}
+	}
+
+	if internal.Debug {
+		fmt.Printf("[DEBUG] CustomerLog: parsed %d data lines, skipped %d lines, %d unique timestamps\n", parsedLines, skippedLines, len(keys))
 	}
 
 	// Write CSV

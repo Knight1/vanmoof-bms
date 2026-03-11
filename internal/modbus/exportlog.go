@@ -50,8 +50,17 @@ var logRegisters = []logRegister{
 // The BMS expects register 0x0F45 to be written with the log ID (0-99) to select the log entry.
 // Then each DataFlash register (0x30-0x44) is read from the 0x0F00 offset address space.
 func ExportReadLog(client *modbus.ModbusClient, filename string) {
+	if internal.Debug {
+		fmt.Println("[DEBUG] ExportReadLog: starting log export")
+		fmt.Printf("[DEBUG] ExportReadLog: reading %d registers per log entry, 100 log entries\n", len(logRegisters))
+	}
+
 	if filename == "" {
 		filename = fmt.Sprintf("bms_log_%s.csv", time.Now().Format("20060102_150405"))
+	}
+
+	if internal.Debug {
+		fmt.Printf("[DEBUG] ExportReadLog: output file=%s\n", filename)
 	}
 
 	file, err := os.Create(filename)
@@ -79,6 +88,10 @@ func ExportReadLog(client *modbus.ModbusClient, filename string) {
 	for logID := 0; logID < 100; logID++ {
 		fmt.Printf("Reading Log ID %d\n", logID)
 
+		if internal.Debug {
+			fmt.Printf("[DEBUG] ExportReadLog: writing register 0x0F45=%d to select log entry\n", logID)
+		}
+
 		// Write register 0x0F45 with the log ID to select which log entry to read
 		if err := client.WriteRegister(0x0F45, uint16(logID)); err != nil {
 			fmt.Printf("Failed to set log ID %d: %v\n", logID, err)
@@ -93,13 +106,22 @@ func ExportReadLog(client *modbus.ModbusClient, filename string) {
 		for _, reg := range logRegisters {
 			// Read from the log address space: 0x0F00 + register address
 			logAddr := 0x0F00 + reg.Address
+			if internal.Debug {
+				fmt.Printf("[DEBUG] ExportReadLog: reading register 0x%04X (%s)\n", logAddr, reg.Name)
+			}
 			regs, err := client.ReadRegisters(logAddr, 1, modbus.HOLDING_REGISTER)
 			if err != nil {
+				if internal.Debug {
+					fmt.Printf("[DEBUG] ExportReadLog: read error at 0x%04X: %v\n", logAddr, err)
+				}
 				row = append(row, "Read Err")
 				continue
 			}
 
 			value := regs[0]
+			if internal.Debug {
+				fmt.Printf("[DEBUG] ExportReadLog: register 0x%04X raw=0x%04X (%d)\n", logAddr, value, value)
+			}
 			row = append(row, formatLogValue(value, reg))
 		}
 

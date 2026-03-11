@@ -1,6 +1,7 @@
 package modbus
 
 import (
+	"bms/v2/internal"
 	"fmt"
 	"time"
 
@@ -8,6 +9,9 @@ import (
 )
 
 func TurnDebugOn(client *modbus.ModbusClient) {
+	if internal.Debug {
+		fmt.Println("[DEBUG] TurnDebugOn: writing register 0x09=1")
+	}
 	if err := client.WriteRegister(0x9, 1); err != nil {
 		fmt.Println("Error setting Debug to On. Error:", err)
 	} else {
@@ -16,6 +20,9 @@ func TurnDebugOn(client *modbus.ModbusClient) {
 }
 
 func TurnDebugOff(client *modbus.ModbusClient) {
+	if internal.Debug {
+		fmt.Println("[DEBUG] TurnDebugOff: writing register 0x09=0")
+	}
 	if err := client.WriteRegister(0x9, 0); err != nil {
 		fmt.Println("Error setting Debug to Off. Error:", err)
 	} else {
@@ -24,6 +31,9 @@ func TurnDebugOff(client *modbus.ModbusClient) {
 }
 
 func TurnDischargingOn(client *modbus.ModbusClient) {
+	if internal.Debug {
+		fmt.Println("[DEBUG] TurnDischargingOn: writing register 0x08=1")
+	}
 	if err := client.WriteRegister(0x8, 1); err != nil {
 		fmt.Println("Error setting Discharging to On. Error:", err)
 	} else {
@@ -32,6 +42,9 @@ func TurnDischargingOn(client *modbus.ModbusClient) {
 }
 
 func TurnDischargingOff(client *modbus.ModbusClient) {
+	if internal.Debug {
+		fmt.Println("[DEBUG] TurnDischargingOff: writing register 0x08=0")
+	}
 	if err := client.WriteRegister(0x8, 0); err != nil {
 		fmt.Println("Error setting Discharging to Off. Error:", err)
 	} else {
@@ -41,6 +54,9 @@ func TurnDischargingOff(client *modbus.ModbusClient) {
 
 // TurnChargeMOSOn enables the charge MOSFET by writing register 0x1A=1.
 func TurnChargeMOSOn(client *modbus.ModbusClient) {
+	if internal.Debug {
+		fmt.Println("[DEBUG] TurnChargeMOSOn: writing register 0x1A=1")
+	}
 	if err := client.WriteRegister(0x1A, 1); err != nil {
 		fmt.Println("Error setting Charge MOS to On. Error:", err)
 	} else {
@@ -50,6 +66,9 @@ func TurnChargeMOSOn(client *modbus.ModbusClient) {
 
 // TurnChargeMOSOff disables the charge MOSFET by writing register 0x1A=0.
 func TurnChargeMOSOff(client *modbus.ModbusClient) {
+	if internal.Debug {
+		fmt.Println("[DEBUG] TurnChargeMOSOff: writing register 0x1A=0")
+	}
 	if err := client.WriteRegister(0x1A, 0); err != nil {
 		fmt.Println("Error setting Charge MOS to Off. Error:", err)
 	} else {
@@ -59,6 +78,9 @@ func TurnChargeMOSOff(client *modbus.ModbusClient) {
 
 // ResetESNModbus clears the Electronic Serial Number via Modbus by writing register 0x0A=0.
 func ResetESNModbus(client *modbus.ModbusClient) {
+	if internal.Debug {
+		fmt.Println("[DEBUG] ResetESNModbus: writing register 0x0A=0")
+	}
 	if err := client.WriteRegister(0x0A, 0); err != nil {
 		fmt.Println("Error resetting ESN via Modbus. Error:", err)
 	} else {
@@ -68,6 +90,9 @@ func ResetESNModbus(client *modbus.ModbusClient) {
 
 // ShipMode puts the BMS into ship mode by writing register 0x01=0.
 func ShipMode(client *modbus.ModbusClient) {
+	if internal.Debug {
+		fmt.Println("[DEBUG] ShipMode: writing register 0x01=0")
+	}
 	if err := client.WriteRegister(0x01, 0); err != nil {
 		fmt.Println("Error setting Ship mode. Error:", err)
 	} else {
@@ -78,14 +103,23 @@ func ShipMode(client *modbus.ModbusClient) {
 // ShipAndDischargeTurnOff puts the BMS into ship mode by writing register 0x01=0
 // and then disabling discharge by writing register 0x08=0.
 func ShipAndDischargeTurnOff(client *modbus.ModbusClient) {
+	if internal.Debug {
+		fmt.Println("[DEBUG] ShipAndDischargeTurnOff: writing register 0x01=0")
+	}
 	if err := client.WriteRegister(0x01, 0); err != nil {
 		fmt.Println("Error setting Ship mode. Error:", err)
 		return
 	}
 	fmt.Println("Ship mode set.")
 
+	if internal.Debug {
+		fmt.Println("[DEBUG] ShipAndDischargeTurnOff: sleeping 20ms before disabling discharge")
+	}
 	time.Sleep(20 * time.Millisecond)
 
+	if internal.Debug {
+		fmt.Println("[DEBUG] ShipAndDischargeTurnOff: writing register 0x08=0")
+	}
 	if err := client.WriteRegister(0x08, 0); err != nil {
 		fmt.Println("Error disabling discharge. Error:", err)
 	} else {
