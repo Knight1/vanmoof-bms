@@ -35,8 +35,7 @@ func main() {
 	fmt.Println("debug Mode:", internal.Debug, "serial Port:", *serialPort, "action", *action, "loop:", *loop)
 
 	if *loop {
-		// Should be enough?
-		internal.ConnectionRetries = 999999999
+		internal.Loop = true
 	}
 
 	// File utility commands (no serial or Modbus needed)

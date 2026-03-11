@@ -33,7 +33,7 @@ func ClearPF(serialPort string) {
 
 	fmt.Println("Serial port opened")
 
-	for attempt := 0; attempt < int(internal.ConnectionRetries); attempt++ {
+	for attempt := 0; internal.Loop || attempt < internal.ConnectionRetries; attempt++ {
 
 		_, err = port.Write([]byte("PF=0"))
 		if err != nil {
@@ -67,7 +67,7 @@ func ClearPF(serialPort string) {
 		}
 
 		// Re-open serial port for next attempt
-		if attempt < int(internal.ConnectionRetries)-1 {
+		if internal.Loop || attempt < internal.ConnectionRetries-1 {
 			port, err = serial.Open(serialPort, mode)
 			if err != nil {
 				log.Fatal(err)

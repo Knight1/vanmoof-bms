@@ -23,7 +23,8 @@ const (
 )
 
 var (
-	ConnectionRetries uint64 = 5
+	ConnectionRetries int  = 5
+	Loop              bool = false
 	Registers         []uint16
 	MilliVolts        float64
 	Debug             bool = false

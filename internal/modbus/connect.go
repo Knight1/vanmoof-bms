@@ -13,7 +13,7 @@ func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, err 
 	var connectErr error
 
 	// Read all BMS ModBus Addresses
-	for attempt := 0; attempt < int(internal.ConnectionRetries); attempt++ {
+	for attempt := 0; internal.Loop || attempt < internal.ConnectionRetries; attempt++ {
 		if debug {
 			fmt.Println("Trying to connect to BMS via ModBus. Attempt:", attempt+1)
 		}
