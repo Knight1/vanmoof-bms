@@ -1,20 +1,23 @@
 # VanMooof BMS
 
 This tool is **ONLY** for the following VanMoof bikes
-- Electrified S3 (VM13-144)
+- Electrified S3
 - Electrified X3
 - Electrified S4
 
 with the Battery Model Name / Product Code: VM13-147  
 from DynaPack from Taiwan.  
 
-It uses ModBus via UART RS232. The VanMoof Electrified S5 and later uses CANBus.  
+It uses ModBus via UART RS232. The VanMoof Electrified S5 and later uses CANBus to talk to the Battery. 
 
-For everything in here you need to remove the Battery from the Frame and be able to connect it to your PC. I suggest a Raspberry Pi.  
+For everything in here you need to remove the Battery from the Frame and be able to connect the battery to your PC. I suggest a Raspberry Pi.  
 
 ## Ports
 
-### SWD
+### SWD Port
+
+This Port is on the PCB. You need a + screwdriver to open the Battery. Break the glue to remove the external port. After that you can slide out the Cells with the BMS PCB on top of the cells.  
+The SWD Port is right at the beginning of the PCB when you slide it out. No need to remove the cell package or the black plastic sheet protecting the PCB.  
 
 - VCC (3.3Vdc)
 - DIO
@@ -22,7 +25,7 @@ For everything in here you need to remove the Battery from the Frame and be able
 - RST
 - GND
 
-### External
+### External Port
 
 ```aiignore
 -----------------------------
@@ -109,8 +112,7 @@ CHG CAL=x
 
 ### Reset BMS (untested!)
 
-This resets the BMS. This removes the Serial Number, any calibration and the Charge Cycles. As far as i know. 
-
+This resets the BMS. This removes the Serial Number, any calibration and the Charge Cycles. As far as i know.
 
 ```console
 Reset BMS V0106
