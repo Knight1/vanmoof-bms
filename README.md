@@ -130,6 +130,18 @@ Off
 GPIO.IO2=0.
 ```
 
+### KeyIn (On/Off)
+
+On
+```console
+GPIO.IO1=1.
+```
+
+Off
+```console
+GPIO.IO1=0.
+```
+
 ### GPIO (On/Off)
 
 On  

@@ -29,6 +29,17 @@ func SetDetectPinOff(serialPort string) {
 	sendGPIOCommand(serialPort, "GPIO.IO2=0.")
 }
 
+// KeyIn controls the key input pin (IO1).
+// Send "GPIO.IO1=1." for ON and "GPIO.IO1=0." for OFF over serial.
+
+func SetKeyInOn(serialPort string) {
+	sendGPIOCommand(serialPort, "GPIO.IO1=1.")
+}
+
+func SetKeyInOff(serialPort string) {
+	sendGPIOCommand(serialPort, "GPIO.IO1=0.")
+}
+
 func sendGPIOCommand(serialPort string, command string) {
 	mode := &serial.Mode{
 		BaudRate: 9600,

@@ -18,7 +18,7 @@ func main() {
 
 	flag.BoolVar(&internal.Debug, "debug", false, "Enable Debug Output")
 	serialPort := flag.String("serial-port", "/dev/serial0", "Serial device URL (e.g., /dev/serial0)")
-	action := flag.String("action", "show", "Action to perform (clearPF, detectOn, detectOff, gpioOn, gpioOff, live, show or showPorts)")
+	action := flag.String("action", "show", "Action to perform (clearPF, detectOn, detectOff, gpioOn, gpioOff, keyInOn, keyInOff, live, show or showPorts)")
 	//firmwareFile := flag.String("firmwareFile", "", "Firmware File to flash to BMS Chip.")
 	loop := flag.Bool("loop", false, "Enable loop for connecting to bms.")
 	overview := flag.Bool("overview", false, "Only show an overview of the essentials and exit.")
@@ -48,6 +48,12 @@ func main() {
 		os.Exit(0)
 	} else if *action == "detectOff" {
 		serial.SetDetectPinOff(*serialPort)
+		os.Exit(0)
+	} else if *action == "keyInOn" {
+		serial.SetKeyInOn(*serialPort)
+		os.Exit(0)
+	} else if *action == "keyInOff" {
+		serial.SetKeyInOff(*serialPort)
 		os.Exit(0)
 	} else if *action == "showPorts" {
 		serial.ShowSerialPorts()
