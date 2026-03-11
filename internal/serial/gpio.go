@@ -3,6 +3,7 @@ package serial
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"go.bug.st/serial"
 )
@@ -66,4 +67,25 @@ func sendGPIOCommand(serialPort string, command string) {
 	}
 
 	fmt.Printf("Sent %s to serial port\n", command)
+
+	// Read response from BMS
+	if err := port.SetReadTimeout(2 * time.Second); err != nil {
+		log.Fatal(err)
+	}
+
+	buf := make([]byte, 256)
+	var response []byte
+	for {
+		n, err := port.Read(buf)
+		if err != nil || n == 0 {
+			break
+		}
+		response = append(response, buf[:n]...)
+	}
+
+	if len(response) > 0 {
+		fmt.Printf("Response: %s\n", string(response))
+	} else {
+		fmt.Println("No response from BMS")
+	}
 }
