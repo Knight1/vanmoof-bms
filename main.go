@@ -18,8 +18,9 @@ func main() {
 
 	flag.BoolVar(&internal.Debug, "debug", false, "Enable Debug Output")
 	serialPort := flag.String("serial-port", "/dev/serial0", "Serial device URL (e.g., /dev/serial0)")
-	action := flag.String("action", "show", "Action to perform (clearPF, detectOn, detectOff, gpioOn, gpioOff, keyInOn, keyInOff, live, resetBMS, resetESN, show, showPorts or writeESN)")
+	action := flag.String("action", "show", "Action to perform (clearLog, clearPF, detectOn, detectOff, exportLog, gpioOn, gpioOff, keyInOn, keyInOff, live, resetBMS, resetESN, ship, show, showPorts or writeESN)")
 	//firmwareFile := flag.String("firmwareFile", "", "Firmware File to flash to BMS Chip.")
+	logFile := flag.String("log-file", "", "Output CSV file for exportLog (default: bms_log_<timestamp>.csv)")
 	esn := flag.String("esn", "", "Electronic Serial Number (14 characters)")
 	esnDate := flag.String("esn-date", "", "Manufacture date as YYYYMMDD")
 	loop := flag.Bool("loop", false, "Enable loop for connecting to bms.")
@@ -63,6 +64,9 @@ func main() {
 	} else if *action == "resetESN" {
 		serial.ResetESN(*serialPort)
 		os.Exit(0)
+	} else if *action == "clearLog" {
+		serial.ClearLog(*serialPort)
+		os.Exit(0)
 	} else if *action == "showPorts" {
 		serial.ShowSerialPorts()
 	}
@@ -105,6 +109,12 @@ func main() {
 		os.Exit(0)
 	} else if *action == "writeESN" {
 		modbus.WriteESNAndDate(client, *esn, *esnDate)
+		os.Exit(0)
+	} else if *action == "ship" {
+		modbus.ShipAndDischargeTurnOff(client)
+		os.Exit(0)
+	} else if *action == "exportLog" {
+		modbus.ExportReadLog(client, *logFile)
 		os.Exit(0)
 	}
 
