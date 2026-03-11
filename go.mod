@@ -1,6 +1,6 @@
 module bms/v2
 
-go 1.22
+go 1.25.0
 
 require (
 	github.com/simonvetter/modbus v1.6.4
@@ -8,7 +8,7 @@ require (
 )
 
 require (
-	github.com/creack/goselect v0.1.2 // indirect
+	github.com/creack/goselect v0.1.3 // indirect
 	github.com/goburrow/serial v0.1.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 )

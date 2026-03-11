@@ -1,4 +1,4 @@
-# github.com/creack/goselect v0.1.2
+# github.com/creack/goselect v0.1.3
 ## explicit; go 1.13
 github.com/creack/goselect
 # github.com/goburrow/serial v0.1.0
@@ -12,8 +12,8 @@ github.com/simonvetter/modbus
 go.bug.st/serial
 go.bug.st/serial/enumerator
 go.bug.st/serial/unixutils
-# golang.org/x/sys v0.19.0
-## explicit; go 1.18
+# golang.org/x/sys v0.42.0
+## explicit; go 1.25.0
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/windows/registry
