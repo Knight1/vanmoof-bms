@@ -123,6 +123,9 @@ func main() {
 	} else if *action == "writeESN" {
 		modbus.WriteESNAndDate(client, *esn, *esnDate)
 		os.Exit(0)
+	} else if *action == "shipMode" {
+		modbus.ShipMode(client)
+		os.Exit(0)
 	} else if *action == "ship" {
 		modbus.ShipAndDischargeTurnOff(client)
 		os.Exit(0)

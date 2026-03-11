@@ -57,6 +57,15 @@ func TurnChargeMOSOff(client *modbus.ModbusClient) {
 	}
 }
 
+// ShipMode puts the BMS into ship mode by writing register 0x01=0.
+func ShipMode(client *modbus.ModbusClient) {
+	if err := client.WriteRegister(0x01, 0); err != nil {
+		fmt.Println("Error setting Ship mode. Error:", err)
+	} else {
+		fmt.Println("Ship mode set!")
+	}
+}
+
 // ShipAndDischargeTurnOff puts the BMS into ship mode by writing register 0x01=0
 // and then disabling discharge by writing register 0x08=0.
 func ShipAndDischargeTurnOff(client *modbus.ModbusClient) {
