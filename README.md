@@ -89,7 +89,8 @@ go build -trimpath -buildmode=pie -mod=vendor -ldflags "-w -s" -v ./...
 | `resetBMS` | Factory reset the BMS (removes ESN, calibration, cycles) |
 | `ship` | Ship mode: disable battery output and discharge |
 | `shipMode` | Ship mode only: disable battery output (register 0x01=0) |
-| `resetESN` | Clear the Electronic Serial Number |
+| `resetESN` | Clear the Electronic Serial Number via serial command |
+| `resetESNModbus` | Clear the Electronic Serial Number via Modbus (register 0x0A=0) |
 | `writeESN` | Write ESN and manufacture date (registers 0x0C-0x14) |
 | `showPorts` | List available serial ports |
 
