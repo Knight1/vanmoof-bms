@@ -90,6 +90,7 @@ func main() {
 		os.Exit(0)
 	} else if *action == "showPorts" {
 		serial.ShowSerialPorts()
+		os.Exit(0)
 	}
 
 	var err error
