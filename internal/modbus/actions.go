@@ -39,6 +39,24 @@ func TurnDischargingOff(client *modbus.ModbusClient) {
 	}
 }
 
+// TurnChargeMOSOn enables the charge MOSFET by writing register 0x1A=1.
+func TurnChargeMOSOn(client *modbus.ModbusClient) {
+	if err := client.WriteRegister(0x1A, 1); err != nil {
+		fmt.Println("Error setting Charge MOS to On. Error:", err)
+	} else {
+		fmt.Println("Charge MOS set to On!")
+	}
+}
+
+// TurnChargeMOSOff disables the charge MOSFET by writing register 0x1A=0.
+func TurnChargeMOSOff(client *modbus.ModbusClient) {
+	if err := client.WriteRegister(0x1A, 0); err != nil {
+		fmt.Println("Error setting Charge MOS to Off. Error:", err)
+	} else {
+		fmt.Println("Charge MOS set to Off!")
+	}
+}
+
 // ShipAndDischargeTurnOff puts the BMS into ship mode by writing register 0x01=0
 // and then disabling discharge by writing register 0x08=0.
 func ShipAndDischargeTurnOff(client *modbus.ModbusClient) {
