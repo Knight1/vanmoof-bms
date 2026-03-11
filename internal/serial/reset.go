@@ -9,5 +9,5 @@ func ResetBMS(serialPort string) {
 // ResetESN sends "Reset ESN" over serial to clear the Electronic Serial Number.
 // The BMS responds with "Done" on success or "Reset ESN fail" on failure.
 func ResetESN(serialPort string) {
-	sendGPIOCommand(serialPort, "Reset ESN")
+	sendGPIOCommand(serialPort, "Reset ESN", "Done")
 }

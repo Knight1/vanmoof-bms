@@ -3,6 +3,7 @@ package serial
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"go.bug.st/serial"
@@ -41,7 +42,9 @@ func SetKeyInOff(serialPort string) {
 	sendGPIOCommand(serialPort, "GPIO.IO1=0.")
 }
 
-func sendGPIOCommand(serialPort string, command string) {
+// sendGPIOCommand sends a command over serial and reads the response.
+// If expectedResponse is provided, the response is checked against it.
+func sendGPIOCommand(serialPort string, command string, expectedResponse ...string) {
 	mode := &serial.Mode{
 		BaudRate: 9600,
 		Parity:   serial.NoParity,
@@ -84,7 +87,21 @@ func sendGPIOCommand(serialPort string, command string) {
 	}
 
 	if len(response) > 0 {
-		fmt.Printf("Response: %s\n", string(response))
+		respStr := strings.TrimSpace(string(response))
+		fmt.Printf("Response: %s\n", respStr)
+
+		if len(expectedResponse) > 0 {
+			found := false
+			for _, expected := range expectedResponse {
+				if strings.Contains(respStr, expected) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				fmt.Printf("WARNING: Expected response containing %q, got %q\n", expectedResponse, respStr)
+			}
+		}
 	} else {
 		fmt.Println("No response from BMS")
 	}
