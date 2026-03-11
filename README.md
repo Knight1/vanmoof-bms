@@ -1,8 +1,14 @@
 # VanMooof BMS
 
-This is **ONLY** for the VanMoof SX3 / S4 - Electrified S3 - (VM13-144), Electrified X3, Electrified S4 with the Battery Model Name / Product Code: VM13-147 from DynaPack from Taiwan.  
+This tool is **ONLY** for the following VanMoof bikes
+- Electrified S3 (VM13-144)
+- Electrified X3
+- Electrified S4
 
-It uses ModBus via UART RS232. The VanMoof Electrified S5 uses CANBus.  
+with the Battery Model Name / Product Code: VM13-147  
+from DynaPack from Taiwan.  
+
+It uses ModBus via UART RS232. The VanMoof Electrified S5 and later uses CANBus.  
 
 For everything in here you need to remove the Battery from the Frame and be able to connect it to your PC. I suggest a Raspberry Pi.  
 
@@ -25,7 +31,6 @@ For everything in here you need to remove the Battery from the Frame and be able
   \     CHG+  |  CHG-    /
    \    DSG-  |  DSG+   /
     --------------------
-  
 ```
 
 ## Connect to the BMS via UART
@@ -69,8 +74,7 @@ The BMS will give you a Message with "OK" and it will reboot. After you see the 
 
 If you fixed the BMS correctly. You *MUST* have the full pack Voltage across both Discharge Ports when you Short TEST to GND. If there is no Pack Voltage on the Discharge Port then the Battery is still not fixed.
 
-You can also fix the BMS Error State by connecting to the SWD Port on the internal side of the PCB and set the Value 0x08080001 to "03" in the EEPROM. This is the same as setting it via the UART Console. 
-
+You can also fix the BMS Error State by connecting to the SWD Port on the internal side of the PCB and set the Value 0x08080001 to "03" in the EEPROM. This is the same as setting it via the UART Console.
 
 ### Clear Logs
 
@@ -84,7 +88,7 @@ Log Clear
 Reset ESN
 ```
 
-It will Display Done if success, Reset ESN fail if the command failed
+It will Display "Done" if success, "Reset ESN fail" if the command failed
 
 
 ### Calibrate Discharge Current
@@ -110,4 +114,16 @@ This resets the BMS. This removes the Serial Number, any calibration and the Cha
 
 ```console
 Reset BMS V0106
+```
+
+### GPIO (On/Off)
+
+On  
+```console
+GPIO.PF2=1.
+```
+
+Off  
+```console
+GPIO.PF2=0.
 ```
