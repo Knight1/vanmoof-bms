@@ -52,6 +52,22 @@ This is possible via modbus, the module does this. But it is fairly easy to upda
 
 ## UART Commands
 
+These Commands are written directly in to the UART Port (Shell) after the BMS started.
+
+### Identify Battery Software Version without reading ModBus
+
+```console
+I am G5 VanMoof BL V004 2019-11-19
+```
+Version: V004  
+Date: 2019-11-19
+
+```console
+I am VanMoof BL V007 2022-11-04 09:32:30
+```
+Version: V007  
+Date: 2022-11-04 09:32:30
+
 ### Clear Power Failure
 
 To clear *ANY* Power Failure if the Tool displays a BMS Shutdown.
