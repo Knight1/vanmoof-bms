@@ -58,7 +58,11 @@ func ExportReadLog(client *modbus.ModbusClient, filename string) {
 	if err != nil {
 		log.Fatalf("Failed to create CSV file: %v", err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Printf("Failed to close CSV file: %v", err)
+		}
+	}()
 
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
