@@ -57,6 +57,15 @@ func TurnChargeMOSOff(client *modbus.ModbusClient) {
 	}
 }
 
+// ResetESNModbus clears the Electronic Serial Number via Modbus by writing register 0x0A=0.
+func ResetESNModbus(client *modbus.ModbusClient) {
+	if err := client.WriteRegister(0x0A, 0); err != nil {
+		fmt.Println("Error resetting ESN via Modbus. Error:", err)
+	} else {
+		fmt.Println("ESN reset via Modbus!")
+	}
+}
+
 // ShipMode puts the BMS into ship mode by writing register 0x01=0.
 func ShipMode(client *modbus.ModbusClient) {
 	if err := client.WriteRegister(0x01, 0); err != nil {
