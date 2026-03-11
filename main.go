@@ -19,8 +19,8 @@ func main() {
 
 	flag.BoolVar(&internal.Debug, "debug", false, "Enable Debug Output")
 	serialPort := flag.String("serial-port", "/dev/serial0", "Serial device URL (e.g., /dev/serial0)")
-	action := flag.String("action", "show", "Action to perform (calibrateCHG, calibrateDSG, chargeOn, chargeOff, clearLog, clearPF, convertLog, detectOn, detectOff, discharge, dischargeoff, exportLog, gpioOn, gpioOff, keyInOn, keyInOff, live, resetBMS, resetESN, resetESNModbus, ship, shipMode, show, showPorts or writeESN)")
-	//firmwareFile := flag.String("firmwareFile", "", "Firmware File to flash to BMS Chip.")
+	action := flag.String("action", "show", "Action to perform (calibrateCHG, calibrateDSG, chargeOn, chargeOff, clearLog, clearPF, convertLog, detectOn, detectOff, discharge, dischargeoff, exportLog, gpioOn, gpioOff, keyInOn, keyInOff, live, resetBMS, resetESN, resetESNModbus, resetMCU, ship, shipMode, show, showPorts, updateFirmware or writeESN)")
+	firmwareFile := flag.String("firmware-file", "", "Firmware .bin file to flash to BMS")
 	logFile := flag.String("log-file", "", "Output CSV file for exportLog (default: bms_log_<timestamp>.csv)")
 	logInput := flag.String("log-input", "", "Input text file for convertLog action")
 	calibrateCurrent := flag.Int("calibrate-current", 0, "Current in mA for calibrateDSG / calibrateCHG actions")
@@ -148,6 +148,9 @@ func main() {
 		os.Exit(0)
 	} else if *action == "exportLog" {
 		modbus.ExportReadLog(client, *logFile)
+		os.Exit(0)
+	} else if *action == "updateFirmware" {
+		modbus.UpdateFirmware(client, *firmwareFile, *serialPort)
 		os.Exit(0)
 	}
 

@@ -91,7 +91,9 @@ go build -trimpath -buildmode=pie -mod=vendor -ldflags "-w -s" -v ./...
 | `shipMode` | Ship mode only: disable battery output (register 0x01=0) |
 | `resetESN` | Clear the Electronic Serial Number via serial command |
 | `resetESNModbus` | Clear the Electronic Serial Number via Modbus (register 0x0A=0) |
+| `resetMCU` | Reset the BMS microcontroller (register 0x80=0) |
 | `writeESN` | Write ESN and manufacture date (registers 0x0C-0x14) |
+| `updateFirmware` | Flash firmware .bin file to BMS via Modbus (requires `--firmware-file`) |
 | `showPorts` | List available serial ports |
 
 ### Flags
@@ -107,6 +109,7 @@ go build -trimpath -buildmode=pie -mod=vendor -ldflags "-w -s" -v ./...
 | `--log-input` | | Input text file path for convertLog |
 | `--esn` | | ESN (14 characters) for writeESN |
 | `--esn-date` | | Manufacture date as YYYYMMDD for writeESN |
+| `--firmware-file` | | Firmware .bin file path for updateFirmware |
 
 ## UART Commands
 
