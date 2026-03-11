@@ -18,6 +18,17 @@ func SetGPIOOff(serialPort string) {
 	sendGPIOCommand(serialPort, "GPIO.PF2=0.")
 }
 
+// DetectPin controls the detect pin (IO2)
+// Send "GPIO.IO2=1." for ON and "GPIO.IO2=0." for OFF over serial.
+
+func SetDetectPinOn(serialPort string) {
+	sendGPIOCommand(serialPort, "GPIO.IO2=1.")
+}
+
+func SetDetectPinOff(serialPort string) {
+	sendGPIOCommand(serialPort, "GPIO.IO2=0.")
+}
+
 func sendGPIOCommand(serialPort string, command string) {
 	mode := &serial.Mode{
 		BaudRate: 9600,

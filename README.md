@@ -118,6 +118,18 @@ This resets the BMS. This removes the Serial Number, any calibration and the Cha
 Reset BMS V0106
 ```
 
+### DetectPin (On/Off)
+
+On
+```console
+GPIO.IO2=1.
+```
+
+Off
+```console
+GPIO.IO2=0.
+```
+
 ### GPIO (On/Off)
 
 On  

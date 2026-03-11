@@ -18,7 +18,7 @@ func main() {
 
 	flag.BoolVar(&internal.Debug, "debug", false, "Enable Debug Output")
 	serialPort := flag.String("serial-port", "/dev/serial0", "Serial device URL (e.g., /dev/serial0)")
-	action := flag.String("action", "show", "Action to perform (clearPF, gpioOn, gpioOff, live, show or showPorts)")
+	action := flag.String("action", "show", "Action to perform (clearPF, detectOn, detectOff, gpioOn, gpioOff, live, show or showPorts)")
 	//firmwareFile := flag.String("firmwareFile", "", "Firmware File to flash to BMS Chip.")
 	loop := flag.Bool("loop", false, "Enable loop for connecting to bms.")
 	overview := flag.Bool("overview", false, "Only show an overview of the essentials and exit.")
@@ -43,14 +43,20 @@ func main() {
 	} else if *action == "gpioOff" {
 		serial.SetGPIOOff(*serialPort)
 		os.Exit(0)
+	} else if *action == "detectOn" {
+		serial.SetDetectPinOn(*serialPort)
+		os.Exit(0)
+	} else if *action == "detectOff" {
+		serial.SetDetectPinOff(*serialPort)
+		os.Exit(0)
 	} else if *action == "showPorts" {
-		internal.ShowSerialPorts()
+		serial.ShowSerialPorts()
 	}
 
 	var err error
 
 	// Creates the Modbus connection with all relevant parameters and the port to use
-	client, err = internal.CreateModbusClient(*serialPort)
+	client, err = modbus.CreateModbusClient(*serialPort)
 	if err != nil {
 		log.Fatalf("Failed to create Modbus client. Maybe the Probe is disconnected? Check the Address of the Device! Error: %v", err)
 	}
@@ -66,7 +72,7 @@ func main() {
 	}
 
 	// Loop for connecting to the bms. Loops until it reaches the end of connectionRetries
-	if _, err := internal.ConnectToBMS(client, internal.Debug); err != nil {
+	if _, err := modbus.ConnectToBMS(client, internal.Debug); err != nil {
 		log.Fatalf("Failed to connect to BMS: %v", err)
 	}
 
@@ -85,7 +91,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	if internal.Registers, err = internal.ReadRegisters(client, 0, 95); err != nil {
+	if internal.Registers, err = modbus.ReadRegisters(client, 0, 95); err != nil {
 		log.Fatalf("Failed to read registers: %v", err)
 	}
 
@@ -101,19 +107,19 @@ func main() {
 	}
 
 	if *action == "live" {
-		internal.LiveData(client, internal.Debug)
+		modbus.LiveData(client, internal.Debug)
 	}
 
 	if *overview {
-		internal.ShowOverview()
+		modbus.ShowOverview()
 		os.Exit(0)
 	}
 
-	internal.GetAndShowPassiveBMSData()
+	modbus.GetAndShowPassiveBMSData()
 
-	internal.GetAndShowFlashBMSData()
+	modbus.GetAndShowFlashBMSData()
 
-	internal.GetAndShowProtectionBMSValues()
+	modbus.GetAndShowProtectionBMSValues()
 
-	internal.GetAndShowPassiveVoltages()
+	modbus.GetAndShowPassiveVoltages()
 }
