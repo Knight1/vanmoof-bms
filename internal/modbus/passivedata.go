@@ -1,6 +1,7 @@
-package internal
+package modbus
 
 import (
+	"bms/v2/internal"
 	"fmt"
 	"math"
 )
@@ -8,18 +9,18 @@ import (
 func GetAndShowPassiveBMSData() {
 	fmt.Println("-- BEGIN BMS PASSIVE STATUS --")
 
-	for register, value := range Registers {
+	for register, value := range internal.Registers {
 		switch register {
-		case RegisterFault:
-			checkFaults(value)
+		case internal.RegisterFault:
+			CheckFaults(value)
 		case 3:
-			fmt.Println("Battery Temperature:", calculateCelsius(value), "°C")
+			fmt.Println("Battery Temperature:", internal.CalculateCelsius(value), "°C")
 		case 4:
 			fmt.Println("Battery Voltage:", value, "mV")
 		case 5:
 			fmt.Println("Real State of Charge:", value, "%")
 		case 6:
-			fmt.Println("Current:", calculateAmperes(value), "mA")
+			fmt.Println("Current:", internal.CalculateAmperes(value), "mA")
 		case 7:
 			checkChargingStatus(value)
 		case 8:
@@ -32,13 +33,13 @@ func GetAndShowPassiveBMSData() {
 			fmt.Printf("Software Version: %04X\n", value)
 		case 12: // 0x0C
 			// ESN: 14 bytes (7 registers 0x0C-0x12) as ASCII
-			if len(Registers) < 19 {
+			if len(internal.Registers) < 19 {
 				fmt.Println("ESN: insufficient register data")
 				continue
 			}
 
 			bytes := make([]byte, 0, 14)
-			for _, reg := range Registers[12:19] {
+			for _, reg := range internal.Registers[12:19] {
 				bytes = append(bytes, byte(reg>>8), byte(reg&0xFF))
 			}
 			fmt.Printf("ESN: %s\n", string(bytes))
@@ -46,13 +47,13 @@ func GetAndShowPassiveBMSData() {
 		case 19: // 0x13
 			// Manufacture Date: 4 bytes (2 registers 0x13-0x14) as DATE
 			// Data[1]/Data[2]/Data[3] (skip Data[0])
-			if len(Registers) < 21 {
+			if len(internal.Registers) < 21 {
 				fmt.Println("Manufacture Date: insufficient register data")
 				continue
 			}
 
 			dateBytes := make([]byte, 0, 4)
-			for _, reg := range Registers[19:21] {
+			for _, reg := range internal.Registers[19:21] {
 				dateBytes = append(dateBytes, byte(reg>>8), byte(reg&0xFF))
 			}
 			fmt.Printf("Manufacture Date: %d/%d/%d\n", dateBytes[1], dateBytes[2], dateBytes[3])
@@ -90,20 +91,20 @@ func GetAndShowPassiveBMSData() {
 		case 36: // 0x24
 			fmt.Println("Cell 10 Voltage:", value, "mV")
 		case 37: // 0x25
-			fmt.Println("Temperature Sensor 1:", calculateCelsius(value), "°C")
+			fmt.Println("Temperature Sensor 1:", internal.CalculateCelsius(value), "°C")
 		case 38: // 0x26
-			fmt.Println("Temperature Sensor 2:", calculateCelsius(value), "°C")
+			fmt.Println("Temperature Sensor 2:", internal.CalculateCelsius(value), "°C")
 		case 39: // 0x27
-			fmt.Println("Discharge MOSFET Temperature:", calculateCelsius(value), "°C")
+			fmt.Println("Discharge MOSFET Temperature:", internal.CalculateCelsius(value), "°C")
 		case 40: // 0x28
 			checkWarnings(value)
 		case 41: // 0x29
-			cellVoltageHighest = value
+			internal.CellVoltageHighest = value
 			fmt.Println("Maximum Battery Voltage:", value, "mV")
 		case 42: // 0x2A
-			cellVoltageLowest = value
-			fmt.Println("Minimum Battery Voltage:", cellVoltageLowest, "mV")
-			if math.Abs(float64(int(cellVoltageHighest)-int(cellVoltageLowest))) > 20 {
+			internal.CellVoltageLowest = value
+			fmt.Println("Minimum Battery Voltage:", internal.CellVoltageLowest, "mV")
+			if math.Abs(float64(int(internal.CellVoltageHighest)-int(internal.CellVoltageLowest))) > 20 {
 				fmt.Println("WARNING: Voltage Imbalance in Cells!")
 			}
 		case 43: // 0x2B

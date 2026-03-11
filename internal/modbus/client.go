@@ -1,4 +1,4 @@
-package internal
+package modbus
 
 import (
 	"fmt"

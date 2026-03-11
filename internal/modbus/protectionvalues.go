@@ -1,6 +1,7 @@
-package internal
+package modbus
 
 import (
+	"bms/v2/internal"
 	"fmt"
 )
 
@@ -10,25 +11,9 @@ func GetAndShowProtectionBMSValues() {
 	fmt.Println("Trigger Values are best guess. DynaPack does not specify them.")
 
 	// Checking Proteection Statusses
-	for register, value := range Registers {
+	for register, value := range internal.Registers {
 		switch register {
-		case 45:
-			// GUESS
-			bmsUndervoltageCellProtection1 = value
-			fmt.Println("Undervoltage Cell Protection 1 Trigger Value:", bmsUndervoltageCellProtection1, "mV")
-		case 46:
-			// GUESS
-			bmsUndervoltageCellProtection2 = value
-			fmt.Println("Undervoltage Cell Protection 2 Trigger Value:", bmsUndervoltageCellProtection2, "mV")
-		case 47:
-			// GUESS
-			bmsUndervoltageCellShutdown = value
-			fmt.Println("Undervoltage Cell Shutdown Trigger Value:", bmsUndervoltageCellShutdown, "mV")
-		case 48:
-			// GUESS
-			bmsOvervoltageCellProtection1 = value
-			fmt.Println("Overvoltage Cell Protection 1 Trigger Value:", bmsOvervoltageCellProtection1, "mV")
-		case 71:
+		case 71: // 0x47
 			fmt.Println("(DOTP) Discharge Over Temperature Protection:", value)
 		case 72: // 0x48
 			fmt.Println("(DUTP) Discharge Under Temperature Protection:", value)

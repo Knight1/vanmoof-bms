@@ -1,10 +1,10 @@
-package internal
+package modbus
 
 import (
 	"fmt"
 )
 
-func checkFaults(value uint16) {
+func CheckFaults(value uint16) {
 	if value == 0 {
 		fmt.Println("BMS STATUS OK!")
 	} else {

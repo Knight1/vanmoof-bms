@@ -2,6 +2,7 @@ package serial
 
 import (
 	"bms/v2/internal"
+	"bms/v2/internal/modbus"
 	"fmt"
 	"log"
 
@@ -47,7 +48,7 @@ func ClearPF(serialPort string) {
 		}
 		port = nil
 
-		client, err := internal.CreateModbusClient(serialPort)
+		client, err := modbus.CreateModbusClient(serialPort)
 		if err != nil {
 			log.Fatalf("Failed to create Modbus client. Maybe the Probe is disconnected? Check the Address of the Device! Error: %v", err)
 		}
@@ -56,7 +57,7 @@ func ClearPF(serialPort string) {
 			fmt.Println("Modbus client created")
 		}
 
-		if _, err := internal.ConnectToBMS(client, internal.Debug); err != nil {
+		if _, err := modbus.ConnectToBMS(client, internal.Debug); err != nil {
 			_ = client.Close()
 			log.Fatalf("Failed to connect to BMS: %v", err)
 		}

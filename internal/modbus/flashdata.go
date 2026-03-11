@@ -1,6 +1,7 @@
-package internal
+package modbus
 
 import (
+	"bms/v2/internal"
 	"fmt"
 )
 
@@ -8,7 +9,7 @@ func GetAndShowFlashBMSData() {
 	fmt.Println("-- BEGIN BMS FLASH STATUS --")
 
 	//
-	for register, value := range Registers {
+	for register, value := range internal.Registers {
 		switch register {
 		case 48: // 0x30
 			// TODO: Check what this is, should be a hex output
@@ -27,20 +28,20 @@ func GetAndShowFlashBMSData() {
 		case 49: // 0x31
 			// TODO: Reports records that are too high (65535)
 			if value < 3731 && value > 2431 {
-				fmt.Println("Battery Temperature Sensor 1 Record:", calculateCelsius(value), "°C")
+				fmt.Println("Battery Temperature Sensor 1 Record:", internal.CalculateCelsius(value), "°C")
 			} else {
 				fmt.Println("Battery Temperature Sensor 1 Record to high or to low!")
 			}
 
 		case 50: // 0x32
 			if value < 3731 && value > 2431 {
-				fmt.Println("Battery Temperature Sensor 2 Record:", calculateCelsius(value), "°C")
+				fmt.Println("Battery Temperature Sensor 2 Record:", internal.CalculateCelsius(value), "°C")
 			} else {
 				fmt.Println("Battery Temperature Sensor 2 Record to high or to low!")
 			}
 		case 51: // 0x33
 			if value > 0 {
-				fmt.Println("MOSFET Temperature Record:", calculateCelsius(value), "°C")
+				fmt.Println("MOSFET Temperature Record:", internal.CalculateCelsius(value), "°C")
 			} else {
 				fmt.Println("MOSFET Temperature Record is set to 0!")
 			}
@@ -52,7 +53,7 @@ func GetAndShowFlashBMSData() {
 			}
 
 		case 53: // 0x35
-			fmt.Println("Current: ", calculateAmperes(value), "mA")
+			fmt.Println("Current: ", internal.CalculateAmperes(value), "mA")
 		case 54: // 0x36
 			if value < 10000 {
 				fmt.Println("Full Charge Capacity below 10000 mAh!")
@@ -75,8 +76,8 @@ func GetAndShowFlashBMSData() {
 				fmt.Println("No Cycle Count set in Flash. Check Passive Data Values!")
 			}
 
-			if len(Registers) > 25 && value != Registers[25] {
-				fmt.Println("Flash Data and Passive Cycle Count mismatch! Real Cycle Count:", Registers[25])
+			if len(internal.Registers) > 25 && value != internal.Registers[25] {
+				fmt.Println("Flash Data and Passive Cycle Count mismatch! Real Cycle Count:", internal.Registers[25])
 			}
 
 		case 59: // 0x3B
@@ -104,24 +105,24 @@ func GetAndShowFlashBMSData() {
 		case 70: // 0x46
 			fmt.Println("Flash Min Vbatt Voltage:", value, "mV")
 		case 87: // 0x57
-			fmt.Println("Maximum recorded Charging Current:", calculateAmperes(value), "mA")
+			fmt.Println("Maximum recorded Charging Current:", internal.CalculateAmperes(value), "mA")
 		case 88: // 0x58
-			fmt.Println("Maximum recorded Discharging Current:", calculateAmperes(value), "mA")
+			fmt.Println("Maximum recorded Discharging Current:", internal.CalculateAmperes(value), "mA")
 		case 89: // 0x59
 			if value < 3731 && value > 2431 {
-				fmt.Println("Maximum recorded Cell Temperature:", calculateCelsius(value), "°C")
+				fmt.Println("Maximum recorded Cell Temperature:", internal.CalculateCelsius(value), "°C")
 			} else {
 				fmt.Println("Maximum recorded Cell Temperature is set to high!")
 			}
 		case 90: // 0x5A
 			if value < 3731 && value > 2431 {
-				fmt.Println("Minimal recorded Cell Temperature:", calculateCelsius(value), "°C")
+				fmt.Println("Minimal recorded Cell Temperature:", internal.CalculateCelsius(value), "°C")
 			} else {
 				fmt.Println("Minimal recorded Cell Temperature is set to high!")
 			}
 		case 91: // 0x5B
 			if value < 3731 && value > 2431 {
-				fmt.Println("Maximum recorded MOSFET Temperature:", calculateCelsius(value), "°C")
+				fmt.Println("Maximum recorded MOSFET Temperature:", internal.CalculateCelsius(value), "°C")
 			} else {
 				fmt.Println("Maximum recorded MOSFET Temperature is set to high!")
 			}

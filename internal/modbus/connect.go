@@ -1,6 +1,7 @@
-package internal
+package modbus
 
 import (
+	"bms/v2/internal"
 	"fmt"
 	"os"
 	"time"
@@ -12,7 +13,7 @@ func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, err 
 	var connectErr error
 
 	// Read all BMS ModBus Addresses
-	for attempt := 0; attempt < int(ConnectionRetries); attempt++ {
+	for attempt := 0; attempt < int(internal.ConnectionRetries); attempt++ {
 		if debug {
 			fmt.Println("Trying to connect to BMS via ModBus. Attempt:", attempt+1)
 		}
@@ -23,7 +24,7 @@ func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, err 
 			if debug {
 				fmt.Println("Failure opening client. Waiting and retrying in 500ms.")
 			}
-			time.Sleep(connectionRetryDelay)
+			time.Sleep(internal.ConnectionRetryDelay)
 			continue
 		}
 
@@ -37,7 +38,7 @@ func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, err 
 			fmt.Println("Reading Registers... Please wait!")
 		}
 		// VanMoof / DynaPack BMS uses slave-id 170
-		if err := client.SetUnitId(DynaPackVanMoofSlaveID); err != nil {
+		if err := client.SetUnitId(internal.DynaPackVanMoofSlaveID); err != nil {
 			if debug {
 				fmt.Println("Failed to set unit ID. Error:", err)
 			}
@@ -57,7 +58,7 @@ func ConnectToBMS(client *modbus.ModbusClient, debug bool) (fault []uint16, err 
 	}
 
 	if connectErr != nil || client == nil {
-		fmt.Println("Retry Counter exceeded. Giving Up. Retry counter:", ConnectionRetries)
+		fmt.Println("Retry Counter exceeded. Giving Up. Retry counter:", internal.ConnectionRetries)
 		fmt.Println("Failed to connect to BMS. Check if VCC on SWD Interface has 2.5Volts!")
 		fmt.Println("Verify that RX/TX is connected correctly via JTAG BMS Version Output!")
 		fmt.Println("Also make sure TEST is connected to GND. Otherwise the BMS will sleep and not respond!")
@@ -75,6 +76,6 @@ func ReadRegisters(client *modbus.ModbusClient, startAddress, quantity uint16) (
 		return regs, readErr
 	}
 
-	Registers = regs
-	return Registers, nil
+	internal.Registers = regs
+	return internal.Registers, nil
 }
