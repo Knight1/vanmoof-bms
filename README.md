@@ -50,6 +50,63 @@ Click into the window. You must have TEST connected to Ground. You can check tha
 
 This is possible via modbus, the module does this. But it is fairly easy to update via SWD.
 
+### Build
+
+```console
+go build -trimpath -buildmode=pie -mod=vendor -ldflags "-w -s" -v ./...
+```
+
+### Usage
+
+```console
+./bms --serial-port /dev/serial0 --action <action>
+```
+
+### Actions
+
+| Action | Description |
+|--------|-------------|
+| `show` | Read and display all BMS registers (default) |
+| `live` | Continuously read and display passive registers |
+| `calibrateCHG` | Calibrate charge current (requires `--calibrate-current`) |
+| `calibrateDSG` | Calibrate discharge current (requires `--calibrate-current`) |
+| `chargeOn` | Enable charge MOSFET (register 0x1A=1) |
+| `chargeOff` | Disable charge MOSFET (register 0x1A=0) |
+| `clearLog` | Clear the BMS log via serial command |
+| `convertLog` | Convert a BMS customer log text file to CSV (requires `--log-input`) |
+| `clearPF` | Clear Power Failure via serial command |
+| `detectOn` | Enable detect pin (IO2=1) |
+| `exportLog` | Export 100 BMS log entries to CSV file |
+| `detectOff` | Disable detect pin (IO2=0) |
+| `gpioOn` | Enable charge port GPIO (PF2=1) |
+| `keyInOn` | Enable key input pin (IO1=1) |
+| `keyInOff` | Disable key input pin (IO1=0) |
+| `gpioOff` | Disable charge port GPIO (PF2=0) |
+| `debug` | Enable BMS debug mode (register 0x09=1) |
+| `debugoff` | Disable BMS debug mode (register 0x09=0) |
+| `discharge` | Enable discharging (register 0x08=1) |
+| `dischargeoff` | Disable discharging (register 0x08=0) |
+| `resetBMS` | Factory reset the BMS (removes ESN, calibration, cycles) |
+| `ship` | Ship mode: disable battery output and discharge |
+| `shipMode` | Ship mode only: disable battery output (register 0x01=0) |
+| `resetESN` | Clear the Electronic Serial Number |
+| `writeESN` | Write ESN and manufacture date (registers 0x0C-0x14) |
+| `showPorts` | List available serial ports |
+
+### Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--serial-port` | `/dev/serial0` | Serial device path |
+| `--debug` | `false` | Enable debug output |
+| `--loop` | `false` | Retry connection indefinitely |
+| `--overview` | `false` | Show essentials only |
+| `--calibrate-current` | | Current in mA for calibrateDSG / calibrateCHG |
+| `--log-file` | | Output CSV file path for exportLog |
+| `--log-input` | | Input text file path for convertLog |
+| `--esn` | | ESN (14 characters) for writeESN |
+| `--esn-date` | | Manufacture date as YYYYMMDD for writeESN |
+
 ## UART Commands
 
 These Commands are written directly in to the UART Port (Shell) after the BMS started.
