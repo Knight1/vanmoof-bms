@@ -90,7 +90,24 @@ type State struct {
 	StartTime time.Time
 	LastFrame time.Time
 
+	// Bitmask of core frame IDs received (for snapshot mode)
+	coreSeen uint8
+
 	modelBuf [16]byte
+}
+
+const (
+	coreStatus   uint8 = 1 << 0 // idStatus
+	coreSoCCurr  uint8 = 1 << 1 // idSoCCurr
+	coreVoltages uint8 = 1 << 2 // idVoltages
+	coreTemps    uint8 = 1 << 3 // idTemps
+	coreAll            = coreStatus | coreSoCCurr | coreVoltages | coreTemps
+)
+
+func (s *State) coreReady() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.coreSeen&coreAll == coreAll
 }
 
 func (s *State) update(f canFrame) {
@@ -113,6 +130,7 @@ func (s *State) update(f canFrame) {
 		if dlc >= 2 {
 			s.ModeByte = d[1]
 		}
+		s.coreSeen |= coreStatus
 
 	case idStandby:
 		if dlc >= 5 {
@@ -127,6 +145,7 @@ func (s *State) update(f canFrame) {
 			raw := binary.LittleEndian.Uint16(d[4:6])
 			s.CurrentmA = int32(int16(raw)) * 10
 		}
+		s.coreSeen |= coreSoCCurr
 
 	case idVoltages:
 		if dlc >= 2 {
@@ -138,6 +157,7 @@ func (s *State) update(f canFrame) {
 		if dlc >= 6 {
 			s.CellMaxMV = binary.LittleEndian.Uint16(d[4:6])
 		}
+		s.coreSeen |= coreVoltages
 
 	case idTemps:
 		if dlc >= 4 {
@@ -156,6 +176,7 @@ func (s *State) update(f canFrame) {
 		if dlc >= 8 && s.SoC == 0 {
 			s.SoC = d[7]
 		}
+		s.coreSeen |= coreTemps
 
 	case idStartup:
 		if dlc >= 2 {
@@ -258,7 +279,8 @@ func trySlcand() {
 // ReadBMS is the main entry point for CAN monitoring.
 // It holds GPIO17 HIGH, opens the CAN socket, runs a reader goroutine,
 // and refreshes a live display until SIGINT/SIGTERM.
-func ReadBMS(iface string) {
+// If snapshot is true it waits for all core frames, prints once, then exits.
+func ReadBMS(iface string, snapshot bool) {
 	// 1. Assert wake line
 	releaseGPIO := HoldWakeLine()
 	defer releaseGPIO()
@@ -314,7 +336,32 @@ func ReadBMS(iface string) {
 		}
 	}()
 
-	// 7. Display loop: refresh every 500 ms
+	// 7a. Snapshot mode: wait for all core frames then print once and exit.
+	if snapshot {
+		fmt.Println("[CAN] Waiting for BMS data ...")
+		deadline := time.NewTimer(5 * time.Second)
+		defer deadline.Stop()
+		poll := time.NewTicker(50 * time.Millisecond)
+		defer poll.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				fmt.Println("\n[CAN] Interrupted.")
+				return
+			case <-deadline.C:
+				fmt.Println("[CAN] Timeout — printing partial data.")
+				printState(s, false)
+				return
+			case <-poll.C:
+				if s.coreReady() {
+					printState(s, false)
+					return
+				}
+			}
+		}
+	}
+
+	// 7b. Live mode: refresh every 500 ms until Ctrl+C.
 	displayTick := time.NewTicker(500 * time.Millisecond)
 	defer displayTick.Stop()
 
@@ -325,20 +372,21 @@ func ReadBMS(iface string) {
 		select {
 		case <-ctx.Done():
 			fmt.Println("\n[CAN] Stopped.")
-			printState(s)
+			printState(s, true)
 			return
 		case <-displayTick.C:
-			printState(s)
+			printState(s, true)
 		}
 	}
 }
 
-func printState(s *State) {
+func printState(s *State, clearScreen bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Clear screen + move cursor home
-	fmt.Print("\033[2J\033[H")
+	if clearScreen {
+		fmt.Print("\033[2J\033[H")
+	}
 
 	uptime := time.Since(s.StartTime).Round(time.Second)
 	age := "—"

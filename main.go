@@ -21,7 +21,18 @@ func main() {
 	flag.BoolVar(&internal.Debug, "debug", false, "Enable Debug Output")
 	serialPort := flag.String("serial-port", "/dev/serial0", "Serial device URL (e.g., /dev/serial0)")
 	canIface := flag.String("can-iface", "can0", "SocketCAN interface for -action can (e.g., can0)")
-	action := flag.String("action", "show", "Action to perform (calibrateCHG, calibrateDSG, can, chargeOn, chargeOff, clearLog, clearPF, convertLog, detectOn, detectOff, discharge, dischargeoff, exportLog, gpioOn, gpioOff, keyInOn, keyInOff, live, resetBMS, resetESN, resetESNModbus, resetMCU, ship, shipMode, show, showPorts, updateFirmware or writeESN)")
+	canSnapshot := flag.Bool("can-snapshot", false, "Read BMS values once and exit (use with -action can)")
+	action := flag.String("action", "show", "Action to perform.\n"+
+		"  Modbus/serial (S3/S4): calibrateCHG, calibrateDSG, chargeOn, chargeOff, clearLog, clearPF,\n"+
+		"    convertLog, detectOn, detectOff, discharge, dischargeoff, exportLog, gpioOn, gpioOff,\n"+
+		"    keyInOn, keyInOff, live, resetBMS, resetESN, resetESNModbus, resetMCU, ship, shipMode,\n"+
+		"    show, showPorts, updateFirmware, writeESN\n"+
+		"  CAN (A5/S5): can, canChargeMode, canChargeOn, canChargeOff, canClearLog,\n"+
+		"    canCoulombCheck, canDisableCellOffline, canDisableBalance, canDisablePDSCP,\n"+
+		"    canDischarge, canDischargeOff, canEnableCellOffline, canEnableBalance, canEnablePDSCP,\n"+
+		"    canNormalMode, canReadADCOffset, canReadChargeOffset, canReadDischargeOffset,\n"+
+		"    canReadRTC, canReadVoltageOffset, canResetBMS, canResetSystem, canSetRTC,\n"+
+		"    canSetSN, canSleep, canStandby, canStatusChargeOff, canStatusChargeOn, canUnlockPF")
 	firmwareFile := flag.String("firmware-file", "", "Firmware .bin file to flash to BMS")
 	logFile := flag.String("log-file", "", "Output CSV file for exportLog (default: bms_log_<timestamp>.csv)")
 	logInput := flag.String("log-input", "", "Input text file for convertLog action")
@@ -47,9 +58,97 @@ func main() {
 		internal.Loop = true
 	}
 
-	// CAN bus read (no serial or Modbus needed)
-	if *action == "can" {
-		can.ReadBMS(*canIface)
+	// CAN bus commands (A5/S5 DynaPack BMS — no serial or Modbus needed)
+	switch *action {
+	case "can":
+		can.ReadBMS(*canIface, *canSnapshot)
+		os.Exit(0)
+	// DynaPack proprietary commands
+	case "canDischarge":
+		can.TurnDischargeOn(*canIface)
+		os.Exit(0)
+	case "canDischargeOff":
+		can.TurnDischargeOff(*canIface)
+		os.Exit(0)
+	case "canChargeOn":
+		can.TurnChargeOn(*canIface)
+		os.Exit(0)
+	case "canChargeOff":
+		can.TurnChargeOff(*canIface)
+		os.Exit(0)
+	case "canUnlockPF":
+		can.UnlockPF(*canIface)
+		os.Exit(0)
+	case "canClearLog":
+		can.ClearLog(*canIface)
+		os.Exit(0)
+	case "canResetBMS":
+		can.ResetBMS(*canIface)
+		os.Exit(0)
+	case "canCoulombCheck":
+		can.CoulombCounterCheck(*canIface)
+		os.Exit(0)
+	case "canSetRTC":
+		can.SetRTC(*canIface)
+		os.Exit(0)
+	case "canReadRTC":
+		can.ReadRTC(*canIface)
+		os.Exit(0)
+	case "canSetSN":
+		can.SetSN(*canIface, *esn)
+		os.Exit(0)
+	case "canReadChargeOffset":
+		can.ReadChargeCurrentOffset(*canIface)
+		os.Exit(0)
+	case "canReadDischargeOffset":
+		can.ReadDischargeCurrentOffset(*canIface)
+		os.Exit(0)
+	case "canReadADCOffset":
+		can.ReadChargeADCOffset(*canIface)
+		os.Exit(0)
+	case "canReadVoltageOffset":
+		can.ReadChargeVoltageOffset(*canIface)
+		os.Exit(0)
+	// SetStatus commands
+	case "canNormalMode":
+		can.SetNormalMode(*canIface)
+		os.Exit(0)
+	case "canChargeMode":
+		can.SetChargeMode(*canIface)
+		os.Exit(0)
+	case "canSleep":
+		can.SetSleepMode(*canIface)
+		os.Exit(0)
+	case "canStandby":
+		can.SetStandbyMode(*canIface)
+		os.Exit(0)
+	case "canStatusChargeOn":
+		can.SetStatusChargeOn(*canIface)
+		os.Exit(0)
+	case "canStatusChargeOff":
+		can.SetStatusChargeOff(*canIface)
+		os.Exit(0)
+	// Feature control commands
+	case "canEnableBalance":
+		can.EnableCellBalance(*canIface)
+		os.Exit(0)
+	case "canDisableBalance":
+		can.DisableCellBalance(*canIface)
+		os.Exit(0)
+	case "canEnablePDSCP":
+		can.EnablePDSCP(*canIface)
+		os.Exit(0)
+	case "canDisablePDSCP":
+		can.DisablePDSCP(*canIface)
+		os.Exit(0)
+	case "canEnableCellOffline":
+		can.EnableCellOffline(*canIface)
+		os.Exit(0)
+	case "canDisableCellOffline":
+		can.DisableCellOffline(*canIface)
+		os.Exit(0)
+	case "canResetSystem":
+		can.ResetSystemFunction(*canIface)
 		os.Exit(0)
 	}
 
