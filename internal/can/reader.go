@@ -70,7 +70,8 @@ type State struct {
 	SubState uint8
 
 	// 0x14811460
-	TempRaw    [4]uint8
+	TempRaw    [4]uint8 // raw bytes; °C = raw - 40 (Kelvin offset from -40°C baseline)
+	TempC      [4]int16 // decoded temperatures in °C (same indexing as TempRaw)
 	RollingCtr uint8
 
 	// 0x14815460 (one-shot at startup)
@@ -141,6 +142,11 @@ func (s *State) update(f canFrame) {
 	case idTemps:
 		if dlc >= 4 {
 			copy(s.TempRaw[:], d[0:4])
+			// °C = raw_byte - 40  (Kelvin offset from −40°C baseline; empirically
+			// confirmed: raw=58–59 at ~18°C room temperature)
+			for i := 0; i < 4; i++ {
+				s.TempC[i] = int16(d[i]) - 40
+			}
 		}
 		if dlc >= 5 {
 			s.RollingCtr = d[4]
@@ -399,8 +405,10 @@ func printState(s *State) {
 	fmt.Printf("  Current        : %+.3f A  (%+d mA)  [%s]\n", currentA, s.CurrentmA, dir)
 
 	fmt.Println()
-	fmt.Printf("  Temp (raw ADC) : %d  %d  %d  %d   rolling ctr: %d\n",
-		s.TempRaw[0], s.TempRaw[1], s.TempRaw[2], s.TempRaw[3], s.RollingCtr)
+	fmt.Printf("  Temperature    : %d °C  %d °C  %d °C  %d °C   rolling ctr: %d\n",
+		s.TempC[0], s.TempC[1], s.TempC[2], s.TempC[3], s.RollingCtr)
+	fmt.Printf("  Temp (raw)     : %d  %d  %d  %d\n",
+		s.TempRaw[0], s.TempRaw[1], s.TempRaw[2], s.TempRaw[3])
 
 	fmt.Println()
 	if s.DesignV > 0 {
