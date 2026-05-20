@@ -2,6 +2,7 @@ package main
 
 import (
 	"bms/v2/internal"
+	"bms/v2/internal/can"
 	"bms/v2/internal/convert"
 	"bms/v2/internal/modbus"
 	"bms/v2/internal/serial"
@@ -19,7 +20,8 @@ func main() {
 
 	flag.BoolVar(&internal.Debug, "debug", false, "Enable Debug Output")
 	serialPort := flag.String("serial-port", "/dev/serial0", "Serial device URL (e.g., /dev/serial0)")
-	action := flag.String("action", "show", "Action to perform (calibrateCHG, calibrateDSG, chargeOn, chargeOff, clearLog, clearPF, convertLog, detectOn, detectOff, discharge, dischargeoff, exportLog, gpioOn, gpioOff, keyInOn, keyInOff, live, resetBMS, resetESN, resetESNModbus, resetMCU, ship, shipMode, show, showPorts, updateFirmware or writeESN)")
+	canIface := flag.String("can-iface", "can0", "SocketCAN interface for -action can (e.g., can0)")
+	action := flag.String("action", "show", "Action to perform (calibrateCHG, calibrateDSG, can, chargeOn, chargeOff, clearLog, clearPF, convertLog, detectOn, detectOff, discharge, dischargeoff, exportLog, gpioOn, gpioOff, keyInOn, keyInOff, live, resetBMS, resetESN, resetESNModbus, resetMCU, ship, shipMode, show, showPorts, updateFirmware or writeESN)")
 	firmwareFile := flag.String("firmware-file", "", "Firmware .bin file to flash to BMS")
 	logFile := flag.String("log-file", "", "Output CSV file for exportLog (default: bms_log_<timestamp>.csv)")
 	logInput := flag.String("log-input", "", "Input text file for convertLog action")
@@ -43,6 +45,12 @@ func main() {
 
 	if *loop {
 		internal.Loop = true
+	}
+
+	// CAN bus read (no serial or Modbus needed)
+	if *action == "can" {
+		can.ReadBMS(*canIface)
+		os.Exit(0)
 	}
 
 	// File utility commands (no serial or Modbus needed)
