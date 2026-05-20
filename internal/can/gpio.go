@@ -31,7 +31,7 @@ const (
 
 // HoldWakeLine asserts GPIO17 HIGH via the Linux GPIO character device (ABI v1).
 // It opens /dev/gpiochip0, calls GPIO_GET_LINEHANDLE_IOCTL to claim line 17 as
-// an output driven HIGH, then immediately closes the chip fd — only the returned
+// an output driven HIGH, then immediately closes the chip fd - only the returned
 // line handle fd needs to stay open to hold the pin state.
 // Returns a cleanup func that closes the line fd and releases the pin.
 func HoldWakeLine() func() {
@@ -61,7 +61,7 @@ func HoldWakeLine() func() {
 
 	if errno != 0 {
 		if errno == unix.EBUSY {
-			fmt.Println("[GPIO] GPIO17 already held by another process — continuing")
+			fmt.Println("[GPIO] GPIO17 already held by another process - continuing")
 			return func() {}
 		}
 		fmt.Printf("[GPIO] Warning: GPIO ioctl failed: %v\n", errno)

@@ -20,10 +20,10 @@ import (
 const (
 	idStatus   = 0x14807460 // byte0=status flags (0x80=PF active), byte1=mode
 	idStandby  = 0x14809460 // byte4=sub-state counter
-	idSoCCurr  = 0x1480B460 // byte0=SoC%, bytes4-5=current signed int16 LE ×10mA
+	idSoCCurr  = 0x1480B460 // byte0=SoC%, bytes4-5=current signed int16 LE x10mA
 	idVoltages = 0x1480D460 // bytes0-1=pack mV LE, bytes2-3=cell_min mV (lowest of 13), bytes4-5=cell_max mV (highest of 13)
 	idTemps    = 0x14811460 // bytes0-3=temp raw[4], byte4=rolling ctr, byte7=SoC cross-check
-	idStartup  = 0x14815460 // bytes0-1=design voltage Q8.8 ÷256 V, byte4=rated cap Ah
+	idStartup  = 0x14815460 // bytes0-1=design voltage Q8.8 / 256 V, byte4=rated cap Ah
 	idFWReply  = 0x14901460 // byte0=hw_rev, bytes1-3=fw_ver BCD
 	idModelA   = 0x1490F460 // ASCII model string bytes 0-7
 	idModelB   = 0x1490F461 // ASCII model string bytes 8-15
@@ -59,7 +59,7 @@ type State struct {
 
 	// 0x1480B460
 	SoC       uint8 // state of charge %
-	CurrentmA int32 // signed, in mA (raw int16 ×10mA)
+	CurrentmA int32 // signed, in mA (raw int16 x10mA)
 
 	// 0x14807460
 	StatusByte uint8
@@ -70,8 +70,8 @@ type State struct {
 	SubState uint8
 
 	// 0x14811460
-	TempRaw    [4]uint8 // raw bytes; °C = raw - 40 (Kelvin offset from -40°C baseline)
-	TempC      [4]int16 // decoded temperatures in °C (same indexing as TempRaw)
+	TempRaw    [4]uint8 // raw bytes; degC = raw - 40 (Kelvin offset from -40 degC baseline)
+	TempC      [4]int16 // decoded temperatures in degC (same indexing as TempRaw)
 	RollingCtr uint8
 
 	// 0x14815460 (one-shot at startup)
@@ -162,8 +162,8 @@ func (s *State) update(f canFrame) {
 	case idTemps:
 		if dlc >= 4 {
 			copy(s.TempRaw[:], d[0:4])
-			// °C = raw_byte - 40  (Kelvin offset from −40°C baseline; empirically
-			// confirmed: raw=58–59 at ~18°C room temperature)
+			// degC = raw_byte - 40  (Kelvin offset from -40 degC baseline; empirically
+			// confirmed: raw=58-59 at ~18 degC room temperature)
 			for i := 0; i < 4; i++ {
 				s.TempC[i] = int16(d[i]) - 40
 			}
@@ -269,7 +269,7 @@ func trySlcand() {
 	if _, err := os.Stat("/dev/ttyACM0"); err != nil {
 		return
 	}
-	fmt.Println("[CAN] can0 absent — trying slcand on /dev/ttyACM0 ...")
+	fmt.Println("[CAN] can0 absent - trying slcand on /dev/ttyACM0 ...")
 	exec.Command("slcand", "-o", "-s8", "-t", "hw", "/dev/ttyACM0", "can0").Run()
 	time.Sleep(500 * time.Millisecond)
 	exec.Command("ip", "link", "set", "can0", "up").Run()
@@ -299,7 +299,7 @@ func ReadBMS(iface string, snapshot bool) {
 	}
 	defer unix.Close(fd)
 
-	fmt.Printf("[CAN] Socket open on %s — sending wake sequence ...\n", iface)
+	fmt.Printf("[CAN] Socket open on %s - sending wake sequence ...\n", iface)
 
 	// 4. Wake sequence
 	hb := buildFrame(idPCHeartbeat, []byte{0x01, 0x00, 0x00, 0x00})
@@ -349,7 +349,7 @@ func ReadBMS(iface string, snapshot bool) {
 				fmt.Println("\n[CAN] Interrupted.")
 				return
 			case <-deadline.C:
-				fmt.Println("[CAN] Timeout — printing partial data.")
+				fmt.Println("[CAN] Timeout - printing partial data.")
 				printState(s, false)
 				return
 			case <-poll.C:
@@ -365,7 +365,7 @@ func ReadBMS(iface string, snapshot bool) {
 	displayTick := time.NewTicker(500 * time.Millisecond)
 	defer displayTick.Stop()
 
-	fmt.Println("[CAN] Monitoring BMS — press Ctrl+C to stop")
+	fmt.Println("[CAN] Monitoring BMS - press Ctrl+C to stop")
 	time.Sleep(300 * time.Millisecond) // let first frames arrive
 
 	for {
@@ -389,7 +389,7 @@ func printState(s *State, clearScreen bool) {
 	}
 
 	uptime := time.Since(s.StartTime).Round(time.Second)
-	age := "—"
+	age := "-"
 	if !s.LastFrame.IsZero() {
 		age = fmt.Sprintf("%.0fs ago", time.Since(s.LastFrame).Seconds())
 		if time.Since(s.LastFrame) < time.Second {
@@ -397,9 +397,9 @@ func printState(s *State, clearScreen bool) {
 		}
 	}
 
-	fmt.Println("╔══════════════════════════════════════════════════════════╗")
-	fmt.Println("║      VanMoof / DynaPack BMS — Live CAN Monitor           ║")
-	fmt.Println("╚══════════════════════════════════════════════════════════╝")
+	fmt.Println("+----------------------------------------------------------+")
+	fmt.Println("|      VanMoof / DynaPack BMS - Live CAN Monitor           |")
+	fmt.Println("+----------------------------------------------------------+")
 	fmt.Printf("  Uptime: %-10v  Frames: %-8d  Last frame: %s\n",
 		uptime, s.Frames, age)
 	fmt.Println()
@@ -407,7 +407,7 @@ func printState(s *State, clearScreen bool) {
 	// Protection status
 	pfStr := "NO"
 	if s.PFActive {
-		pfStr = "YES ← Protection Failure active"
+		pfStr = "YES <- Protection Failure active"
 	}
 	fmt.Printf("  PF mode      : %s\n", pfStr)
 	fmt.Printf("  Status       : 0x%02X   Mode: 0x%02X   Sub-state: 0x%02X\n",
@@ -436,7 +436,7 @@ func printState(s *State, clearScreen bool) {
 		}
 		marker := ""
 		if spread > cellImbalanceShutdownMV {
-			marker = "  ← exceeds 250 mV PF threshold (expected)"
+			marker = "  <- exceeds 250 mV PF threshold (expected)"
 		}
 		fmt.Printf("  Cell spread  : %7d mV%s\n", spread, marker)
 	}
@@ -453,7 +453,7 @@ func printState(s *State, clearScreen bool) {
 	fmt.Printf("  Current        : %+.3f A  (%+d mA)  [%s]\n", currentA, s.CurrentmA, dir)
 
 	fmt.Println()
-	fmt.Printf("  Temperature    : %d °C  %d °C  %d °C  %d °C   rolling ctr: %d\n",
+	fmt.Printf("  Temperature    : %d degC  %d degC  %d degC  %d degC   rolling ctr: %d\n",
 		s.TempC[0], s.TempC[1], s.TempC[2], s.TempC[3], s.RollingCtr)
 	fmt.Printf("  Temp (raw)     : %d  %d  %d  %d\n",
 		s.TempRaw[0], s.TempRaw[1], s.TempRaw[2], s.TempRaw[3])

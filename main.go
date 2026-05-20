@@ -58,7 +58,7 @@ func main() {
 		internal.Loop = true
 	}
 
-	// CAN bus commands (A5/S5 DynaPack BMS — no serial or Modbus needed)
+	// CAN bus commands (A5/S5 DynaPack BMS - no serial or Modbus needed)
 	switch *action {
 	case "can":
 		can.ReadBMS(*canIface, *canSnapshot)
