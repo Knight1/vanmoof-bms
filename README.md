@@ -7,7 +7,144 @@ This tool is **ONLY** for the following VanMoof bikes
 with the Battery Model Name / Product Code: VM13-147  
 from DynaPack from Taiwan.  
 
-It uses ModBus via UART RS232. The VanMoof Electrified S5 and later uses CANBus to talk to the Battery. 
+It uses ModBus via UART RS232. The VanMoof Electrified S5 and later uses CANBus to talk to the Battery.
+
+---
+
+# VanMoof A5 / S5 - DynaPack BMS (CAN bus)
+
+The A5/S5 battery uses a **CAN-only** DynaPack BMS. There is **no Modbus / UART interface** on this pack. All communication is via 29-bit extended CAN frames at 1 Mbps.
+
+> **Warning:** The battery defaults to Protection Failure (PF) mode if the cell spread exceeds 250 mV. This is expected for an imbalanced pack. Do **not** attempt to clear PF without first ensuring the cells are safe.
+
+## Hardware Setup
+
+- **Raspberry Pi 4** (or similar Linux SBC)
+- **CANable 2** USB CAN adapter in `gs_usb` mode -> `can0`, or via `slcand` on `/dev/ttyACM0`
+- **GPIO 17** = INT/WAKE line - must be held **HIGH continuously** while the BMS is active (not just pulsed)
+- CAN bus: **1 Mbps**, 29-bit extended frames
+
+### External Connector Pin-out
+
+The A5/S5 battery connector carries CAN H/L, 12 V supply, GPIO wake line (INT), and ground. GPIO 17 on the Pi connects to the INT pin and must stay HIGH for the BMS to remain awake.
+
+### Bring up `can0`
+
+```console
+# gs_usb mode (CANable 2 default):
+sudo ip link set can0 type can bitrate 1000000
+sudo ip link set can0 up
+
+# slcand fallback (if can0 is absent and adapter appears as /dev/ttyACM0):
+sudo slcand -o -s8 -t hw /dev/ttyACM0 can0
+sudo ip link set can0 up
+```
+
+The `can` action does this automatically if `can0` is absent and `/dev/ttyACM0` is present.
+
+## Usage
+
+```console
+./bms --action can [--can-iface can0]
+```
+
+The tool will:
+1. Assert GPIO 17 HIGH via the Linux GPIO character device (ABI v1)
+2. Bring up `can0` via `slcand` if needed
+3. Open a raw SocketCAN socket
+4. Send the BMS wake sequence
+5. Decode all broadcast frames and display a live-updating screen
+6. Release GPIO 17 on Ctrl+C
+
+## CAN Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--can-iface` | `can0` | SocketCAN interface name |
+
+## Wake Sequence
+
+The BMS must be woken by impersonating the `power_control` node:
+
+| CAN ID | DLC | Data | Purpose |
+|--------|-----|------|---------|
+| `0x01111460` | 4 | `01 00 00 00` | PC heartbeat - repeat every 250 ms |
+| `0x14901470` | 0 | (none) | AP version request - triggers BMS broadcast burst |
+| `0x14803470` | 2 | `40 00` | SetStatus / RequestBMSInfo |
+
+## BMS Broadcast Frames (BMS -> power_control, ~250 ms interval)
+
+All frames use 29-bit extended IDs. BMS source address encodes to `0x460`, destination to `0x470`.
+
+| CAN ID | Bytes | Description |
+|--------|-------|-------------|
+| `0x14807460` | 0: status flags (`0x80` = PF active), 1: mode code | Protection / mode status |
+| `0x14809460` | 4: sub-state counter | Standby sub-state |
+| `0x1480B460` | 0: SoC %, 4-5: signed LE int16 x 10 mA (current) | State of charge + current |
+| `0x1480D460` | 0-1: pack mV LE, 2-3: cell min mV LE, 4-5: cell max mV LE | Voltages |
+| `0x14811460` | 0-3: temp raw bytes, 4: rolling counter, 7: SoC cross-check | Temperatures |
+| `0x14815460` | 0-1: design voltage Q8.8 / 256 V LE, 4: rated cap Ah | One-shot at startup |
+| `0x14901460` | 0: hw_rev, 1-3: fw_ver BCD | FW version reply |
+| `0x1490F460` | ASCII bytes 0-7 of serial number string | Serial number (part 1) |
+| `0x1490F461` | ASCII bytes 8-15 of serial number string | Serial number (part 2) |
+
+### Pack Specification
+
+- **13S** pack, nominal **47.97 V** (13 x 3.69 V/cell)
+- `0x1480D460` bytes 2-3 = **weakest cell** across all 13 cells (mV)
+- `0x1480D460` bytes 4-5 = **strongest cell** across all 13 cells (mV)
+- **PF shutdown** triggers at > 250 mV spread between min and max cell
+- CAN only reports the minimum and maximum cell - individual cell voltages are not broadcast
+
+### Temperature Decoding
+
+The four raw bytes in `0x14811460` bytes 0-3 encode temperature as:
+
+```
+degC = raw_byte - 40
+```
+
+This is a Kelvin-offset encoding with a -40 degC baseline (common in embedded BMS firmware). Empirically confirmed: raw value 58-59 at ~18 degC room temperature.
+
+The four sensors correspond to: Cell Temp 1, Cell Temp 2, Charge Temp, Discharge MOS Temp.
+
+## DynaPack Proprietary Commands (ID `0x1082FF00`)
+
+Always send the ASCII string `"DynaPack"` (8 bytes) on the same ID first, wait 5 ms, then send the command frame. Replies come back on `0x1082FF00`.
+
+| `byte[0]` | Function | Notes |
+|-----------|----------|-------|
+| `0x00` | SetRTC | bytes 1-6: ss, mm, hh, dd, MM, yy |
+| `0x0A` | SetCellTemp1Offset | byte 1: signed offset (-128 to 127) |
+| `0x0B` | SetCellTemp2Offset | byte 1: signed offset |
+| `0x0C` | SetChargeTempOffset | byte 1: signed offset |
+| `0x0E` + `byte[1]=1` | **UnlockPF** | Temporarily allows commands in PF mode |
+| `0x0F` | ReadChargeCurrentOffset | reply: int16 LE |
+| `0x10` | ReadDischargeCurrentOffset | reply: int16 LE |
+| `0x12` | ReadChargeADCCurrentOffset | reply: int16 LE |
+| `0x13` | ReadRTC | reply bytes 1-6: ss/mm/hh dd/MM/yy |
+| `0x14` + `byte[1]=0/1` | TurnDischarge Off/On | |
+| `0x15` + `byte[1]=0/1` | TurnCharge Off/On | |
+| `0x21` | ReadChargeVoltageOffset | reply: int16 LE |
+| `0x22` | ClearErrorLog | write, no reply |
+| `0xFF` | ResetBMS | write, no reply |
+
+## Feature Control (ID `0x000002FF`)
+
+No `"DynaPack"` prefix needed.
+
+| `byte[0]` | Function |
+|-----------|----------|
+| `2` | DisablePDSCP |
+| `3` | EnablePDSCP |
+| `4` | DisableCellOffLine |
+| `5` | EnableCellOffLine |
+| `6` | DisableCellBalance |
+| `7` | EnableCellBalance |
+| `254` | ResetSystemFunction |
+
+---
+
 
 For everything in here you need to remove the Battery from the Frame and be able to connect the battery to your PC. I suggest a Raspberry Pi.  
 
@@ -66,6 +203,7 @@ go build -trimpath -buildmode=pie -mod=vendor -ldflags "-w -s" -v ./...
 
 | Action | Description |
 |--------|-------------|
+| `can` | Live CAN bus monitor for A5/S5 DynaPack BMS (no Modbus needed) |
 | `show` | Read and display all BMS registers (default) |
 | `live` | Continuously read and display passive registers |
 | `calibrateCHG` | Calibrate charge current (requires `--calibrate-current`) |
@@ -100,6 +238,7 @@ go build -trimpath -buildmode=pie -mod=vendor -ldflags "-w -s" -v ./...
 
 | Flag | Default | Description |
 |------|---------|-------------|
+| `--can-iface` | `can0` | SocketCAN interface for `-action can` |
 | `--serial-port` | `/dev/serial0` | Serial device path |
 | `--debug` | `false` | Enable debug output |
 | `--loop` | `false` | Retry connection indefinitely |
