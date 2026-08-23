@@ -41,10 +41,17 @@ func main() {
 	esnDate := flag.String("esn-date", "", "Manufacture date as YYYYMMDD")
 	loop := flag.Bool("loop", false, "Enable loop for connecting to bms.")
 	overview := flag.Bool("overview", false, "Only show an overview of the essentials and exit.")
+	showVersion := flag.Bool("version", false, "Print version information and exit")
+	flag.BoolVar(showVersion, "v", false, "Print version information and exit (shorthand)")
 	flag.Parse()
 
 	fmt.Println("Starting VanMoof / DynaPack BMS Toolkit")
 	fmt.Println("Go version:", runtime.Version(), "Version:", internal.GoVersion, "BuildTime:", internal.BuildTime, "CommitHash:", internal.CommitHash, "GOOS:", internal.GOOS, "GOARCH:", internal.GOARCH)
+
+	// Print version/build info and exit before touching any hardware.
+	if *showVersion {
+		os.Exit(0)
+	}
 
 	if internal.Debug {
 		fmt.Println("-- CLI Arguments --")
