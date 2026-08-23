@@ -7,6 +7,15 @@ Supports two completely different hardware interfaces depending on the bike mode
 go build -trimpath -buildmode=pie -mod=vendor -ldflags "-w -s" -v ./...
 ```
 
+## Platform support
+
+The intended target is a Linux SBC (Raspberry Pi, `linux/arm64`); build/deploy with `./build.sh`.
+
+- **Linux** - everything: Modbus/UART (S3/S4) and CAN (A5/S5).
+- **macOS** - Modbus/UART (S3/S4) only, for local development with a USB-serial adapter. **CAN is not supported on macOS**: it relies on Linux SocketCAN and the GPIO character device, which don't exist on macOS. CAN actions build (via no-op stubs in `internal/can/stub_other.go`) but print a notice and do nothing.
+
+CAN-on-macOS is *feasible* - the CANable adapter speaks SLCAN over `/dev/tty.usbmodem...` directly (no `slcand`, which is Linux-only), and the GPIO wake line can be tied to an external 3.3V source instead of GPIO 17 - but it is deliberately unimplemented until someone needs it. Ask if you do.
+
 ---
 
 # S3 / S4 - Modbus / UART BMS
@@ -204,6 +213,8 @@ Interface: **CAN bus only** at 1 Mbps, 29-bit extended frames.
 There is **no Modbus or UART interface** on this pack.
 
 > **Warning:** The battery defaults to Protection Failure (PF) mode if any cell spread exceeds 250 mV. This is expected for an imbalanced pack. Do **not** attempt to clear PF without first confirming the cells are safe.
+
+> **Linux only.** The CAN path uses SocketCAN + the Linux GPIO character device and does not run on macOS (see [Platform support](#platform-support)).
 
 ## Hardware Setup
 

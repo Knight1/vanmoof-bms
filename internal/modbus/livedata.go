@@ -30,7 +30,7 @@ func LiveData(client *modbus.ModbusClient, debug bool) {
 		fmt.Println("[DEBUG] LiveData: starting continuous read loop")
 	}
 
-	// Handle Ctrl+C gracefully — show cursor and reset terminal
+	// Handle Ctrl+C gracefully - show cursor and reset terminal
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -90,20 +90,14 @@ func renderLiveDisplay() {
 	b.WriteString(fmt.Sprintf("  [%s]\n", time.Now().Format("15:04:05")))
 	b.WriteString(strings.Repeat("-", 58) + "\n")
 
-	// Fault status
+	// Run state / protection word (reg 2). Decoded by exact value via
+	// runStateLabel - reg 2 is a run-state word, not a raw DOTP-SCP bitfield.
 	fault := regs[2]
 	if fault == 0 {
 		b.WriteString(ansiGreen + ansiBold + "  STATUS: OK" + ansiReset + "                                          \n")
 	} else {
 		b.WriteString(ansiRed + ansiBold + fmt.Sprintf("  STATUS: SHUTDOWN (0x%04X)", fault) + ansiReset + "                        \n")
-		flags := []string{"DOTP", "DUTP", "COTP", "CUTP", "DOCP1", "DOCP2", "COCP1", "COCP2", "OVP1", "OVP2", "UVP1", "UVP2", "PDOCP", "PDSCP", "MOTP", "SCP"}
-		var active []string
-		for i, f := range flags {
-			if fault&(1<<i) != 0 {
-				active = append(active, f)
-			}
-		}
-		b.WriteString(ansiRed + "  Faults: " + strings.Join(active, ", ") + ansiReset + "                        \n")
+		b.WriteString(ansiRed + "  " + runStateLabel(fault) + ansiReset + "                        \n")
 	}
 
 	b.WriteString(strings.Repeat("-", 58) + "\n")

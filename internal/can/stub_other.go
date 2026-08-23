@@ -6,6 +6,10 @@
 // compile, so this file provides no-op stubs with the same exported API.
 // Each stub prints a notice and returns, allowing the Modbus/serial paths of
 // the toolkit to be built and run locally while CAN actions are unavailable.
+//
+// CAN on macOS is feasible (SLCAN directly over the USB serial port, wake line
+// tied to external 3.3V) but is deliberately unimplemented until someone needs
+// it. See the "Platform support" section of README.md.
 package can
 
 import "fmt"
