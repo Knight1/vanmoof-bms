@@ -164,10 +164,11 @@ func renderLiveDisplay() {
 	}
 	b.WriteString("          \n")
 
-	// Warnings
+	// Warnings (reg 40) - decoded via activeWarnings from the verified map.
 	warnings := regs[40]
 	if warnings != 0 {
 		b.WriteString(ansiYellow + fmt.Sprintf("  Warnings: 0x%04X", warnings) + ansiReset + "                              \n")
+		b.WriteString(ansiYellow + "  " + strings.Join(activeWarnings(warnings), ", ") + ansiReset + "          \n")
 	} else {
 		b.WriteString("  Warnings: None                                          \n")
 	}

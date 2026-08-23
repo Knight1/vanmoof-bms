@@ -81,15 +81,55 @@ func CheckFaults(value uint16) {
 	fmt.Printf(" - %s\n", runStateLabel(value))
 }
 
-func checkWarnings(value uint16) {
-	fmt.Printf("Warning Status: %04X\n", value)
+// warningBits maps register 40 (0x28, SRAM 0x20002C0A) bit positions to their
+// meaning. Verified against the OEM 1.17.1 warning monitor at 0x080141e4; each
+// warning is a debounced threshold trip against a cfg_blk threshold. Empty
+// strings are the bits the firmware never sets (0, 2, 3, 6, 8, 10).
+// Source: batteryware docs/protocol.md, "Register 40 (0x28) - warnings bitfield".
+var warningBits = [16]string{
+	0:  "",
+	1:  "MOSFET over-temperature",
+	2:  "",
+	3:  "",
+	4:  "Low state-of-charge (RSOC <= 5%)",
+	5:  "Cell under-voltage",
+	6:  "",
+	7:  "Cell over-voltage",
+	8:  "",
+	9:  "Discharge over-current (or OVP1/OVP2 charge-disable latch)",
+	10: "",
+	11: "Charge over-current",
+	12: "Charge under-temperature",
+	13: "Charge over-temperature",
+	14: "Discharge under-temperature",
+	15: "Discharge over-temperature",
+}
 
-	// Decode flags (bitwise operations)
-	flags := []string{"DOTPW", "DUTPW", "COTPW", "CUTPW", "DOCPW", "RSVD", "COCPW", "RSVD", "OVP1W", "RSVD", "UVP1W", "SOC", "PDOCPW", "RSVD", "MOTPW", "RSVD"}
-	for i, flag := range flags {
-		if value&(1<<i) != 0 {
-			fmt.Printf(" - %s is set\n", flag)
+// activeWarnings returns the decoded names of every set bit in register 40.
+// Bits the firmware never sets are reported as "bit N (reserved)" if seen.
+func activeWarnings(value uint16) []string {
+	var out []string
+	for i := 0; i < 16; i++ {
+		if value&(1<<i) == 0 {
+			continue
 		}
+		if name := warningBits[i]; name != "" {
+			out = append(out, name)
+		} else {
+			out = append(out, fmt.Sprintf("bit %d (reserved)", i))
+		}
+	}
+	return out
+}
+
+func checkWarnings(value uint16) {
+	fmt.Printf("Warning Status: 0x%04X\n", value)
+	if value == 0 {
+		fmt.Println(" - none")
+		return
+	}
+	for _, name := range activeWarnings(value) {
+		fmt.Printf(" - %s\n", name)
 	}
 }
 
