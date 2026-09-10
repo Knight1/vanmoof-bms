@@ -74,6 +74,8 @@ Only proceed if you see this message.
 
 ## Actions
 
+These actions only work with the tool not in the battery shell where you see the "I am VanMoof .."!  
+
 | Action | Description |
 |--------|-------------|
 | `show` | Read and display all BMS registers (default) |
