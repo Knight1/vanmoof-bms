@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/brutella/can v0.0.2 // indirect
 	github.com/creack/goselect v0.1.3 // indirect
 	github.com/goburrow/serial v0.1.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect

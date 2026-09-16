@@ -325,6 +325,70 @@ All DynaPack commands wake the BMS first, send the command, then release GPIO an
 
 ---
 
+## Library mode (`--protocol canbus`)
+
+A second CAN implementation (package `internal/canbus`, built on the
+`github.com/brutella/can` SocketCAN library) is selected with `--protocol canbus`
+instead of the raw-SocketCAN `-action can` path above. It targets the same
+A5/S5/S6 pack but over the Object-Dictionary addressing (`0x1480_040` family,
+battery node `0xA4`) and the `power_control` command channel, and it also carries
+the DynaPack BMS heartbeat / firmware protocol (`0x10801000`).
+
+> The `-action can` path above is the one verified against a bench A5/S5 pack
+> (it decodes the `0x1480_460` broadcast frames). This library path uses the
+> firmware/reference OD addressing; if `batteryState` reports no telemetry, the
+> pack is answering on the `-action can` addressing instead — use that path.
+
+```console
+ip link set can0 up type can bitrate 1000000
+./bms --protocol canbus --can-interface can0 --action batteryState
+```
+
+Every `--protocol canbus` action first confirms an A5/S5/S6 battery is on the bus
+(battery heartbeat `0x01111480`, node-0xA4 telemetry, or the BMS heartbeat
+`0x10801000`) and refuses otherwise — the S3/S4 pack is Modbus/UART only.
+
+### Actions
+
+| Action | Description |
+|--------|-------------|
+| `batteryState` | Read + print telemetry: SoC, capacity, pack/min/max/per-cell voltages, temperatures, currents, health (SOH, cycles) |
+| `batteryOn` | Request battery power ON — `power_control` command `0x14603040`, opcode `0x01` |
+| `batteryOff` | Request battery power OFF — opcode `0x00` (cuts pack output) |
+| `chargeOn` / `chargeOff` | Enable / disable charging (SetStatus) |
+| `shipMode` | Enter shipping / sleep mode |
+| `standby` / `wakeup` | Enter standby / wake from standby |
+| `enterBootloader` / `exitBootloader` | MCU bootloader control |
+| `updateFirmware` / `updateFirmwareAP` | Flash firmware (requires `--firmware-file`) |
+| `resetMCU` | Reset the BMS MCU |
+
+### Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--protocol` | `modbus` | Set to `canbus` for this path |
+| `--can-interface` | `can0` | SocketCAN interface (distinct from `--can-iface`) |
+| `--firmware-file` | | Firmware .bin for `updateFirmware` / `updateFirmwareAP` |
+
+### Battery OD telemetry frames (node 0xA4)
+
+Each signal is `0xA4<<21 | signal<<13 | 0x1040`; multi-byte fields are big-endian:
+
+| CAN ID | Signal | Payload |
+|--------|--------|---------|
+| `0x14807040` | charging | charge current (u16 mA), charge voltage (u16 mV) |
+| `0x14809040` | cells | 12 × per-cell voltage (u16 mV, multi-frame) |
+| `0x1480B040` | capacity | RSOC (u16 %), remaining (u16 mAh), average current (i16 mA) |
+| `0x1480D040` | warning | 4 × warning byte, cell imbalance (u8 mV) |
+| `0x1480F040` | status | 6 × status byte, mode+flags byte |
+| `0x14811040` | voltage | total (u16 mV), min cell (u16 mV), max cell (u16 mV) |
+| `0x14813040` | temperature | cell1/cell2/chgMOS/dsgMOS (i8 °C), discharge current + limit (u16 mA) |
+| `0x14815040` | health | nominal (i16 mAh), full charge (i16 mAh), SOH (i16 %), cycles (i16) |
+
+Battery power on/off (`0x14603040`, node 0xA3 → 0xA4): `cansend can0 14603040#0100` (on), `#0000` (off).
+
+---
+
 ## CAN Protocol Reference
 
 ### Wake Sequence
